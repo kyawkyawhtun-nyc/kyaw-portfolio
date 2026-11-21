@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteHref } from '../../lib/site';
+
+const projects = (await getCollection('projects')).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title),
+);
+---
+
+<BaseLayout
+  title="Projects"
+  description="Placeholder index of data analysis projects."
+>
+  <h1>Projects</h1>
+  <p class="muted">Placeholder project list. No real datasets are included.</p>
+  <ul>
+    {
+      projects.map((project) => (
+        <li>
+          <a href={siteHref(`projects/${project.id}/`)}>{project.data.title}</a>
+          <p>{project.data.summary}</p>
+          <p class="muted">Tools: {project.data.tools.join(', ')}</p>
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>

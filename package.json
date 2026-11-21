@@ -1,0 +1,26 @@
+{
+  "name": "kyaw-portfolio",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Static personal portfolio skeleton for a data analyst. Placeholder content only.",
+  "type": "module",
+  "engines": {
+    "node": ">=26.13.1 <27"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "check:dist": "node scripts/check-dist.mjs",
+    "check:images": "node scripts/check-images.mjs",
+    "hooks:install": "git config core.hooksPath scripts/hooks && chmod +x scripts/hooks/pre-commit scripts/hooks/pre-push"
+  },
+  "dependencies": {
+    "astro": "7.4.13"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "typescript": "6.0.3"
+  }
+}

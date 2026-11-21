@@ -1,0 +1,57 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteHref } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+
+<BaseLayout title={project.data.title} description={project.data.summary}>
+  <p><a href={siteHref('projects/')}>All projects</a></p>
+  <h1>{project.data.title}</h1>
+  <p>{project.data.summary}</p>
+  <p class="muted">Dataset: {project.data.dataset}</p>
+  <h2>Tools</h2>
+  <ul>
+    {project.data.tools.map((tool) => <li>{tool}</li>)}
+  </ul>
+  {
+    project.data.image ? (
+      <img src={siteHref(project.data.image)} alt={project.data.title} />
+    ) : null
+  }
+  {
+    project.data.links.length > 0 ? (
+      <>
+        <h2>Links</h2>
+        <ul>
+          {project.data.links.map((link) => {
+            const external = /^https?:\/\//i.test(link.href);
+            return (
+              <li>
+                <a
+                  href={external ? link.href : siteHref(link.href)}
+                  {...(external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
+                >
+                  {link.label}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </>
+    ) : null
+  }
+  <Content />
+</BaseLayout>

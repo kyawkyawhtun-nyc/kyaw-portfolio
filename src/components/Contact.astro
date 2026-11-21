@@ -1,0 +1,12 @@
+---
+import { LINKEDIN_PLACEHOLDER, PLACEHOLDER_EMAIL, entityEncode } from '../lib/contact';
+
+const encoded = entityEncode(PLACEHOLDER_EMAIL);
+const mailto = `<a href="mailto:${encoded}">${encoded}</a>`;
+---
+
+<p>
+  Contact (placeholder): <Fragment set:html={mailto} />
+  {' · '}
+  <a href={LINKEDIN_PLACEHOLDER} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+</p>

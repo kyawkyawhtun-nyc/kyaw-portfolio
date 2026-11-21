@@ -1,12 +1,13 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const distDir = process.argv[2] ?? 'dist';
 
-const CSP =
-  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests";
+export const CSP =
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests";
 
-function walkHtml(dir, files = []) {
+function walk(dir, htmlFiles, svgFiles) {
   let entries;
   try {
     entries = readdirSync(dir);
@@ -19,10 +20,10 @@ function walkHtml(dir, files = []) {
   }
   for (const name of entries) {
     const path = join(dir, name);
-    if (statSync(path).isDirectory()) walkHtml(path, files);
-    else if (extname(name).toLowerCase() === '.html') files.push(path);
+    if (statSync(path).isDirectory()) walk(path, htmlFiles, svgFiles);
+    else if (extname(name).toLowerCase() === '.html') htmlFiles.push(path);
+    else if (extname(name).toLowerCase() === '.svg') svgFiles.push(path);
   }
-  return files;
 }
 
 function decodeEntities(value) {
@@ -33,6 +34,27 @@ function decodeEntities(value) {
     .replace(/&apos;/g, "'")
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
+}
+
+function decodeSvg(value) {
+  let current = value;
+  for (let pass = 0; pass < 2; pass += 1) {
+    current = current
+      .replace(/&#x([0-9a-f]+);/gi, (entity, hex) => {
+        const code = Number.parseInt(hex, 16);
+        return code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
+      })
+      .replace(/&#(\d+);/g, (entity, num) => {
+        const code = Number.parseInt(num, 10);
+        return code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
+      })
+      .replace(/&quot;/gi, '"')
+      .replace(/&#0*39;|&apos;/gi, "'")
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&amp;/gi, '&');
+  }
+  return current;
 }
 
 function getAttr(tag, name) {
@@ -66,7 +88,7 @@ function firstHeadElement(headInner) {
   return { error: '<head> has no elements' };
 }
 
-function checkFile(html) {
+function checkHtml(html) {
   const errors = [];
   const headMatch = /<head\b[^>]*>([\s\S]*?)<\/head>/i.exec(html);
   if (!headMatch) {
@@ -103,24 +125,49 @@ function checkFile(html) {
   return errors;
 }
 
-const files = walkHtml(distDir);
-if (files.length === 0) {
-  console.error(`check-dist: no HTML files under ${distDir}`);
-  process.exit(1);
+function checkSvg(raw) {
+  const text = `${raw}\n${decodeSvg(raw)}`;
+  const errors = [];
+  if (/<script\b/i.test(text)) errors.push('SVG contains <script');
+  if (/<foreignObject\b/i.test(text)) errors.push('SVG contains <foreignObject');
+  if (/javascript\s*:/i.test(text)) errors.push('SVG contains a javascript: URL');
+  if (/\bon\w+\s*=/i.test(text)) errors.push('SVG contains an event-handler attribute');
+  return errors;
 }
 
-let failed = 0;
-for (const file of files) {
-  const errors = checkFile(readFileSync(file, 'utf8'));
-  if (errors.length === 0) continue;
-  failed += 1;
-  console.error(`\n${file}`);
-  for (const error of errors) console.error(`  - ${error}`);
+function main() {
+  const htmlFiles = [];
+  const svgFiles = [];
+  walk(distDir, htmlFiles, svgFiles);
+  if (htmlFiles.length === 0) {
+    console.error(`check-dist: no HTML files under ${distDir}`);
+    process.exit(1);
+  }
+
+  let failed = 0;
+  for (const file of htmlFiles) {
+    const errors = checkHtml(readFileSync(file, 'utf8'));
+    if (errors.length === 0) continue;
+    failed += 1;
+    console.error(`\n${file}`);
+    for (const error of errors) console.error(`  - ${error}`);
+  }
+  for (const file of svgFiles) {
+    const errors = checkSvg(readFileSync(file, 'utf8'));
+    if (errors.length === 0) continue;
+    failed += 1;
+    console.error(`\n${file}`);
+    for (const error of errors) console.error(`  - ${error}`);
+  }
+
+  if (failed > 0) {
+    console.error(`\ncheck-dist: ${failed} file(s) failed.`);
+    process.exit(1);
+  }
+
+  console.log(`check-dist: ${htmlFiles.length} HTML file(s) and ${svgFiles.length} SVG file(s) passed.`);
 }
 
-if (failed > 0) {
-  console.error(`\ncheck-dist: ${failed} file(s) failed.`);
-  process.exit(1);
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
 }
-
-console.log(`check-dist: ${files.length} HTML file(s) passed.`);

@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { projectHrefSchema } from './lib/project-href.mjs';
 
 const projects = defineCollection({
   loader: glob({ base: './src/content/projects', pattern: '**/*.md' }),
@@ -12,7 +13,7 @@ const projects = defineCollection({
     links: z.array(
       z.object({
         label: z.string(),
-        href: z.string(),
+        href: projectHrefSchema,
       }),
     ),
     image: z.string().optional(),

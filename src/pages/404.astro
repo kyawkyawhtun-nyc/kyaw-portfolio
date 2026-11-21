@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteHref } from '../lib/site';
+---
+
+<BaseLayout title="Page not found" description="Placeholder 404 page.">
+  <h1>Page not found</h1>
+  <p>That page is not part of this placeholder site.</p>
+  <p><a href={siteHref()}>Back home</a></p>
+</BaseLayout>

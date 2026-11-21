@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteHref } from '../lib/site';
+
+const projects = (await getCollection('projects')).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title),
+);
+---
+
+<BaseLayout
+  title="Home"
+  description="Placeholder home page for a data analyst portfolio."
+>
+  <h1>Your Name</h1>
+  <p>
+    Placeholder intro for a data analyst portfolio. Lorem ipsum dolor sit amet,
+    consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+    dolore magna aliqua.
+  </p>
+  <p><a href={siteHref('projects/')}>All projects</a></p>
+  <h2>Selected projects</h2>
+  <ul>
+    {
+      projects.map((project) => (
+        <li>
+          <a href={siteHref(`projects/${project.id}/`)}>{project.data.title}</a>
+          <p class="muted">{project.data.summary}</p>
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>

@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    env:
+      ASTRO_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: astro check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Check built HTML
+        run: npm run check:dist
+
+      - name: Install ExifTool
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends libimage-exiftool-perl
+
+      - name: Check image metadata
+        run: npm run check:images
+
+      - name: Prepare internal link root
+        id: linkroot
+        run: |
+          root="$(mktemp -d)"
+          ln -s "$GITHUB_WORKSPACE/dist" "$root/kyaw-portfolio"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+
+      - name: Check internal links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          fail: true
+          failIfEmpty: true
+          lycheeVersion: v0.24.2
+          args: >-
+            --offline
+            --no-progress
+            --root-dir ${{ steps.linkroot.outputs.root }}
+            --index-files=index.html
+            --include-fragments=anchor-only
+            --exclude "^https?://"
+            --exclude "^mailto:"
+            "./dist/**/*.html"
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # gitleaks v8.30.1, release commit 83d9cd684c87d95d656c1458ef04895a7f1cbd8e.
+      # The MIT binary scans every fetched commit. gitleaks-action only scans the
+      # commits named on the push or pull_request event, so it does not cover full
+      # history. No license key is used. Personal accounts do not need one.
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          version="8.30.1"
+          archive="gitleaks_${version}_linux_x64.tar.gz"
+          checksum="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+          curl --fail --silent --show-error --location \
+            --output "$archive" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${version}/${archive}"
+          echo "${checksum}  ${archive}" | sha256sum --check --strict
+          tar --extract --gzip --file "$archive" gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Scan full git history
+        run: gitleaks git . --redact --no-banner --verbose --log-opts="--all"

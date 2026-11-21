@@ -68,7 +68,17 @@ Before committing a photo, SVG, or PDF, strip metadata:
 exiftool -all= <file>
 ```
 
-`npm run check:images` scans raster images, SVGs, and `.pdf` files under `public/` and `src/`. It uses exiftool when it is on `PATH` (CI installs it) and always scans bytes as well. It fails on EXIF or GPS metadata. For PDFs it also fails on document-info `Author`, `Creator`, or `Producer` (those exiftool tags, or the PDF keys `/Author`, `/Creator`, `/Producer`, plus `/GPS`). The same `exiftool -all= <file>` command strips that metadata from images and PDFs. Without exiftool, the byte scan still covers EXIF headers, GPS text, and those PDF keys.
+`npm run check:images` scans raster images, SVGs, and `.pdf` files under `public/` and `src/`. Images are checked with exiftool when it is installed, and with a byte scan for EXIF headers and GPS text. PDFs require exiftool: if a PDF is present and exiftool is missing, the check fails and tells you to install it. A byte scan is not used for PDFs, because compressed metadata and escaped names such as `/Auth#6Fr` are easy to miss.
+
+The PDF check fails when ExifTool reports an error or warning, when the file type is not PDF, or when `Author`, `Creator`, or GPS tags are present. `Producer` does not fail the check. Preview, browsers, and other PDF tools set it on almost every file, so treating it as a finding would reject ordinary documents. The script prints a warning when `Producer` is present and still exits successfully.
+
+`exiftool -all=` on a PDF only appends an update. The old `Author` bytes stay in the file and can be recovered. Rewrite the file instead, and commit the rewritten output:
+
+```sh
+exiftool -overwrite_original -all:all= input.pdf && qpdf --warning-exit-0 --linearize input.pdf output.pdf
+```
+
+`-overwrite_original` avoids leaving `input.pdf_original`, which would still contain the old bytes. `qpdf --linearize` writes a new file without that incremental trailer. Some qpdf versions exit 3 when they only warn while repairing the page; `--warning-exit-0` still writes `output.pdf`.
 
 ## Content
 
@@ -79,7 +89,7 @@ Internal links go through `siteHref()` so they keep the `/kyaw-portfolio` base.
 ## CI and deploy
 
 - `.github/workflows/ci.yml` runs on pull requests and on pushes to `main`.
-- `.github/workflows/deploy.yml` is present and disabled. It can only be started with `workflow_dispatch`, and both the `build` and `deploy` jobs are skipped unless the repository variable `PAGES_ENABLED` is `true`. The build job only has `contents: read`. The deploy job only has `pages: write` and `id-token: write`.
+- `.github/workflows/deploy.yml` is present and disabled. It can only be started with `workflow_dispatch`, and both the `build` and `deploy` jobs are skipped unless the repository variable `PAGES_ENABLED` is `true`. The build job only has `contents: read`. The deploy job only has `pages: write` and `id-token: write`. The build does not call `configure-pages`: that action needs `pages: read`, runs after the site is already built, and is unused because `site` and `base` are set in `astro.config.mjs`.
 - `.github/dependabot.yml` opens weekly updates for npm and GitHub Actions.
 
 Link checking uses lychee v0.24.2 through `lycheeverse/lychee-action` (pinned by commit). The action is called with an empty `token` so it does not receive the workflow `GITHUB_TOKEN`. It runs offline, skips `http(s)` and `mailto` URLs, and resolves `/kyaw-portfolio/...` against `dist/` so only internal files and anchors are checked.

@@ -7,6 +7,8 @@ import { z } from 'astro/zod';
  */
 export function isAllowedProjectHref(href) {
   if (typeof href !== 'string' || href.length === 0) return false;
+  // Browsers treat "\/", whitespace, and C0 controls in a path as off-site or normalized.
+  if (/[\\\s\u0000-\u001f]/.test(href)) return false;
   if (href.startsWith('#')) return true;
   if (href.startsWith('/') && !href.startsWith('//')) return true;
   return href.startsWith('https://');

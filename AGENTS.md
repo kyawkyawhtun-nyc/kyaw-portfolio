@@ -43,7 +43,7 @@ Rules for the OpenAI Codex CLI (and any other coding agent) working in this repo
 
 ## Images
 
-- Strip EXIF and GPS metadata before committing images: `exiftool -all= <file>`. For a PDF, that command only appends an update. Run `exiftool -overwrite_original -all:all= input.pdf && qpdf --linearize input.pdf output.pdf` and commit `output.pdf`.
+- Strip EXIF and GPS metadata before committing images: `exiftool -all= <file>`. For a PDF, that command only appends an update. Run `exiftool -overwrite_original -all:all= input.pdf && qpdf --warning-exit-0 --linearize input.pdf output.pdf` and commit `output.pdf`.
 - `npm run check:images` must pass.
 
 ## Security review

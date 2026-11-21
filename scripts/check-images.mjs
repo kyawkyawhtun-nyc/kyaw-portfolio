@@ -176,7 +176,7 @@ for (const file of files) {
 if (failed > 0) {
   console.error(`\ncheck-images: ${failed} file(s) contain EXIF, GPS, or PDF author metadata, or could not be read.`);
   console.error('Images: exiftool -all= <file>');
-  console.error('PDFs: exiftool -overwrite_original -all:all= <file> && qpdf --linearize <file> <out.pdf>');
+  console.error('PDFs: exiftool -overwrite_original -all:all= <file> && qpdf --warning-exit-0 --linearize <file> <out.pdf>');
   process.exit(1);
 }
 

@@ -75,10 +75,10 @@ The PDF check fails when ExifTool reports an error or warning, when the file typ
 `exiftool -all=` on a PDF only appends an update. The old `Author` bytes stay in the file and can be recovered. Rewrite the file instead, and commit the rewritten output:
 
 ```sh
-exiftool -overwrite_original -all:all= input.pdf && qpdf --linearize input.pdf output.pdf
+exiftool -overwrite_original -all:all= input.pdf && qpdf --warning-exit-0 --linearize input.pdf output.pdf
 ```
 
-`-overwrite_original` avoids leaving `input.pdf_original`, which would still contain the old bytes. `qpdf --linearize` writes a new file without that incremental trailer.
+`-overwrite_original` avoids leaving `input.pdf_original`, which would still contain the old bytes. `qpdf --linearize` writes a new file without that incremental trailer. Some qpdf versions exit 3 when they only warn while repairing the page; `--warning-exit-0` still writes `output.pdf`.
 
 ## Content
 

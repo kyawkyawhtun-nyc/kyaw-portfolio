@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -32,7 +32,7 @@ function buildPdf(info) {
   const objects = [
     '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
     '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
-    '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>\nendobj\n',
+    '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Resources << >> >>\nendobj\n',
   ];
   if (info) objects.push(`4 0 obj\n<< ${info} >>\nendobj\n`);
   let body = '%PDF-1.4\n';
@@ -237,7 +237,11 @@ try {
   writeFileSync(rewrite, buildPdf('/Author (Placeholder Person) /Creator (Secret Tool) /Producer (Quartz)'));
   execFileSync('exiftool', ['-overwrite_original', '-all:all=', rewrite], { stdio: 'pipe' });
   const linear = join(pdfDir, 'linear.pdf');
-  execFileSync('qpdf', ['--linearize', rewrite, linear], { stdio: 'pipe' });
+  const linearized = spawnSync('qpdf', ['--warning-exit-0', '--linearize', rewrite, linear], { encoding: 'utf8' });
+  assert(
+    linearized.status === 0 && existsSync(linear) && readFileSync(linear).length > 0,
+    `qpdf --linearize should write output.pdf\n${linearized.stderr ?? ''}`,
+  );
   const linearBytes = readFileSync(linear);
   assert(!linearBytes.includes(Buffer.from('Placeholder')), 'qpdf --linearize should drop the old Author string');
   assert(!linearBytes.includes(Buffer.from('/Author')), 'qpdf --linearize should drop the /Author key');

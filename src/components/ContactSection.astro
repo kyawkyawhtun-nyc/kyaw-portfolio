@@ -1,0 +1,34 @@
+---
+import ContactEmail from './ContactEmail.astro';
+import { GITHUB_LABEL, GITHUB_URL, LINKEDIN_PLACEHOLDER_LABEL } from '../lib/contact';
+---
+
+<section class="section section--alt" id="contact" aria-labelledby="contact-title">
+  <div class="container">
+    <header class="section__header">
+      <span class="eyebrow">05 — Contact</span>
+      <h2 id="contact-title">Let’s talk about a data analyst role.</h2>
+    </header>
+    <div class="contact__grid">
+      <p class="contact__intro">
+        I’m based in Staten Island, NY, available during U.S. Eastern Time business hours, and open to remote or NYC hybrid work. Email is the fastest way to reach me.
+      </p>
+      <div class="contact-card">
+        <ul class="contact-links">
+          <li>
+            <span class="label">Email</span>
+            <ContactEmail />
+          </li>
+          <li>
+            <span class="label">GitHub</span>
+            <a href={GITHUB_URL}>{GITHUB_LABEL}</a>
+          </li>
+          <li>
+            <span class="label">LinkedIn</span>
+            <span class="placeholder-value">{LINKEDIN_PLACEHOLDER_LABEL}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

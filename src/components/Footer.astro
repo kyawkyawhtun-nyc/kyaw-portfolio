@@ -1,0 +1,17 @@
+---
+import ContactEmail from './ContactEmail.astro';
+import { GITHUB_URL, LINKEDIN_PLACEHOLDER_LABEL } from '../lib/contact';
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <p>© 2026 Kyaw Kyaw Htun · Staten Island, NY</p>
+    <nav aria-label="Footer">
+      <ul>
+        <li><a href={GITHUB_URL}>GitHub</a></li>
+        <li><span class="placeholder-value">{LINKEDIN_PLACEHOLDER_LABEL}</span></li>
+        <li><ContactEmail label="Email" /></li>
+      </ul>
+    </nav>
+  </div>
+</footer>

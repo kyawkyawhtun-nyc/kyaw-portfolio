@@ -2,7 +2,7 @@
   "name": "kyaw-portfolio",
   "version": "0.0.0",
   "private": true,
-  "description": "Static personal portfolio skeleton for a data analyst. Placeholder content only.",
+  "description": "Static personal portfolio for a data analyst.",
   "type": "module",
   "engines": {
     "node": ">=26.13.1 <27"
@@ -17,6 +17,9 @@
     "hooks:install": "git config core.hooksPath scripts/hooks && chmod +x scripts/hooks/pre-commit scripts/hooks/pre-push"
   },
   "dependencies": {
+    "@fontsource-variable/newsreader": "5.3.0",
+    "@fontsource-variable/source-sans-3": "5.3.1",
+    "@fontsource/ibm-plex-mono": "5.3.0",
     "astro": "7.4.13"
   },
   "devDependencies": {

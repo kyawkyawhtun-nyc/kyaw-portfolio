@@ -35,8 +35,9 @@ The site is served under `/kyaw-portfolio/` because Astro `base` is set for GitH
 | `npm run check` | `astro check` (TypeScript strict) |
 | `npm run build` | Static build into `dist/` |
 | `npm run preview` | Serve the build locally |
-| `npm run check:dist` | Fail if built HTML has an inline script, a missing or non-first CSP meta, or `target="_blank"` without `rel="noopener noreferrer"` |
-| `npm run check:images` | Fail if an image under `public/` or `src/` contains EXIF or GPS metadata |
+| `npm run check:dist` | Fail if built HTML has an inline script, a missing or non-first CSP meta, or `target="_blank"` without `rel="noopener noreferrer"`. Also fail if a built SVG contains `<script`, an `on…=` handler, `javascript:`, or `<foreignObject` |
+| `npm run check:images` | Fail if an image or PDF under `public/` or `src/` contains EXIF, GPS, or PDF Author/Creator/Producer metadata |
+| `npm run test:security` | Fixture tests for the SVG and project-link checks |
 | `npm run hooks:install` | Point this clone at `scripts/hooks` |
 
 CI also runs `npm audit --audit-level=high` and an offline internal link check.
@@ -46,7 +47,7 @@ CI also runs `npm audit --audit-level=high` and an offline internal link check.
 - The first element in every page `<head>` is:
 
 ```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests">
 ```
 
   The next element is `<meta name="referrer" content="strict-origin-when-cross-origin">`.
@@ -61,27 +62,27 @@ CI also runs `npm audit --audit-level=high` and an offline internal link check.
 
 ### Images
 
-Before committing a photo or other raster image, strip metadata:
+Before committing a photo, SVG, or PDF, strip metadata:
 
 ```sh
 exiftool -all= <file>
 ```
 
-`npm run check:images` uses exiftool when it is on `PATH` (CI installs it). Without exiftool, the script falls back to scanning for an EXIF header and GPS tags. Install exiftool locally if you want the same check CI runs.
+`npm run check:images` scans raster images, SVGs, and `.pdf` files under `public/` and `src/`. It uses exiftool when it is on `PATH` (CI installs it) and always scans bytes as well. It fails on EXIF or GPS metadata. For PDFs it also fails on document-info `Author`, `Creator`, or `Producer` (those exiftool tags, or the PDF keys `/Author`, `/Creator`, `/Producer`, plus `/GPS`). The same `exiftool -all= <file>` command strips that metadata from images and PDFs. Without exiftool, the byte scan still covers EXIF headers, GPS text, and those PDF keys.
 
 ## Content
 
-Project write-ups are Markdown files in `src/content/projects/` validated by the schema in `src/content.config.ts` (`title`, `summary`, `tools`, `dataset`, `links`, optional `image`). The two sample projects are dummy text.
+Project write-ups are Markdown files in `src/content/projects/` validated by the schema in `src/content.config.ts` (`title`, `summary`, `tools`, `dataset`, `links`, optional `image`). A project link `href` must be an `https://` URL, a root-relative path (`/…`, not `//…`), or a `#` fragment. `javascript:`, `http:`, and `data:` are rejected. The two sample projects are dummy text.
 
 Internal links go through `siteHref()` so they keep the `/kyaw-portfolio` base.
 
 ## CI and deploy
 
 - `.github/workflows/ci.yml` runs on pull requests and on pushes to `main`.
-- `.github/workflows/deploy.yml` is present and disabled. It can only be started with `workflow_dispatch`, and the job is skipped unless the repository variable `PAGES_ENABLED` is `true`.
+- `.github/workflows/deploy.yml` is present and disabled. It can only be started with `workflow_dispatch`, and both the `build` and `deploy` jobs are skipped unless the repository variable `PAGES_ENABLED` is `true`. The build job only has `contents: read`. The deploy job only has `pages: write` and `id-token: write`.
 - `.github/dependabot.yml` opens weekly updates for npm and GitHub Actions.
 
-Link checking uses lychee v0.24.2 through `lycheeverse/lychee-action` (pinned by commit). It runs offline, skips `http(s)` and `mailto` URLs, and resolves `/kyaw-portfolio/...` against `dist/` so only internal files and anchors are checked.
+Link checking uses lychee v0.24.2 through `lycheeverse/lychee-action` (pinned by commit). The action is called with an empty `token` so it does not receive the workflow `GITHUB_TOKEN`. It runs offline, skips `http(s)` and `mailto` URLs, and resolves `/kyaw-portfolio/...` against `dist/` so only internal files and anchors are checked.
 
 ## Launch checklist
 
@@ -94,7 +95,7 @@ Do this only when the site is ready to publish. Do not flip these settings as pa
 5. Enable secret scanning and push protection.
 6. Enable Dependabot alerts and Dependabot security updates.
 7. Set the Actions default token to read-only.
-8. Set the Pages source to GitHub Actions.
+8. Set the Pages source to "GitHub Actions", not "Deploy from a branch".
 9. Enable Enforce HTTPS.
 10. Restrict the `github-pages` environment to `main`.
 11. Set the repository variable `PAGES_ENABLED=true`.

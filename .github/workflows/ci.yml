@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -40,6 +42,9 @@ jobs:
       - name: Check built HTML
         run: npm run check:dist
 
+      - name: Security fixture tests
+        run: npm run test:security
+
       - name: Install ExifTool
         run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends libimage-exiftool-perl
 
@@ -59,6 +64,8 @@ jobs:
           fail: true
           failIfEmpty: true
           lycheeVersion: v0.24.2
+          # Do not pass the workflow token into the offline link checker.
+          token: ""
           args: >-
             --offline
             --no-progress
@@ -68,6 +75,8 @@ jobs:
             --exclude "^https?://"
             --exclude "^mailto:"
             "./dist/**/*.html"
+        env:
+          GITHUB_TOKEN: ""
 
   gitleaks:
     name: gitleaks
@@ -77,6 +86,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # gitleaks v8.30.1, release commit 83d9cd684c87d95d656c1458ef04895a7f1cbd8e.
       # The MIT binary scans every fetched commit. gitleaks-action only scans the

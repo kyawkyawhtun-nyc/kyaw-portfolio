@@ -33,7 +33,7 @@ Rules for the OpenAI Codex CLI (and any other coding agent) working in this repo
 
 ## Security baseline
 
-- No inline scripts. Keep the Content-Security-Policy meta tag intact and first in `<head>`, followed by the referrer policy meta.
+- No inline scripts. Keep the Content-Security-Policy meta tag intact and first in `<head>` (including `form-action 'none'`), followed by the referrer policy meta. Project link hrefs may only be `https://`, a root-relative `/` path, or a `#` fragment.
 - External links that open in a new tab use `rel="noopener noreferrer"`.
 - No third-party CDNs or trackers. Leave `ASTRO_TELEMETRY_DISABLED=1` in CI.
 

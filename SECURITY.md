@@ -8,7 +8,7 @@ Report a vulnerability to the repository owner. After the repository is public, 
 
 ## Baseline
 
-- The first element in `<head>` is a Content-Security-Policy meta tag. `script-src` is `'self'` only. The build must not emit an inline script.
+- The first element in `<head>` is a Content-Security-Policy meta tag. `script-src` is `'self'` only and `form-action` is `'none'`. The build must not emit an inline script. Built SVGs must not contain scripts, event handlers, `javascript:` URLs, or `foreignObject`.
 - Referrer policy is `strict-origin-when-cross-origin`.
 - Links that use `target="_blank"` also set `rel="noopener noreferrer"`.
 - There is no analytics, no third-party CDN, and no embedded form provider.

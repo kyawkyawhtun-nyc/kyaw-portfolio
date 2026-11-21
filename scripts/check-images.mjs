@@ -17,12 +17,15 @@ const IMAGE_EXT = new Set([
   '.bmp',
   '.svg',
   '.ico',
+  '.pdf',
 ]);
 
 const ROOTS = ['public', 'src'];
 
 const PRIVACY_GROUP =
   /^(EXIF|ExifIFD|GPS|IFD0|IFD1|InteropIFD|MakerNotes|XMP-exif|XMP-exifEX|XMP-photoshop|XMP-xmp|XMP-iptcCore|XMP-iptcExt)$/i;
+
+const PDF_INFO_TAG = /^(Author|Creator|Producer)$/i;
 
 function walk(dir, files) {
   let entries;
@@ -71,7 +74,7 @@ function hitsFromExiftool(file) {
     if (PRIVACY_GROUP.test(group)) hits.push(group);
     if (!value || typeof value !== 'object') continue;
     for (const tag of Object.keys(value)) {
-      if (/gps|latitude|longitude/i.test(tag)) hits.push(`${group}:${tag}`);
+      if (/gps|latitude|longitude/i.test(tag) || PDF_INFO_TAG.test(tag)) hits.push(`${group}:${tag}`);
     }
   }
   return hits;
@@ -86,6 +89,12 @@ function hitsFromBytes(file) {
     hits.push('PNG eXIf chunk');
   }
   if (/GPSLatitude|GPSLongitude|GPSPosition|GPSDestLatitude/.test(latin)) hits.push('GPS text');
+  if (file.toLowerCase().endsWith('.pdf')) {
+    if (/\/Author\b/.test(latin)) hits.push('PDF Author');
+    if (/\/Creator\b/.test(latin)) hits.push('PDF Creator');
+    if (/\/Producer\b/.test(latin)) hits.push('PDF Producer');
+    if (/\/GPS\b/i.test(latin)) hits.push('PDF GPS');
+  }
   return hits;
 }
 
@@ -101,7 +110,7 @@ if (files.length === 0) {
 console.log(
   useExiftool
     ? `check-images: scanning ${files.length} file(s) with exiftool and a byte scan.`
-    : `check-images: exiftool not found; scanning ${files.length} file(s) for EXIF headers and GPS tags.`,
+    : `check-images: exiftool not found; scanning ${files.length} file(s) for EXIF headers, GPS tags, and PDF author/creator keys.`,
 );
 
 let failed = 0;
@@ -122,7 +131,7 @@ for (const file of files) {
 }
 
 if (failed > 0) {
-  console.error(`\ncheck-images: ${failed} file(s) contain EXIF or GPS metadata.`);
+  console.error(`\ncheck-images: ${failed} file(s) contain EXIF, GPS, or PDF author/creator metadata.`);
   console.error('Strip it with: exiftool -all= <file>');
   process.exit(1);
 }

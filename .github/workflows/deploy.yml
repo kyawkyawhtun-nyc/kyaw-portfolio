@@ -55,8 +55,10 @@ jobs:
       - name: Check image metadata
         run: npm run check:images
 
-      - name: Configure Pages
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      # configure-pages is omitted. It calls the Pages API, which needs pages: read,
+      # and this job deliberately keeps contents: read only. The action also runs
+      # after the Astro build and its outputs are unused. site and base are set in
+      # astro.config.mjs; upload-pages-artifact does not need configure-pages.
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

@@ -25,7 +25,7 @@ const ROOTS = ['public', 'src'];
 const PRIVACY_GROUP =
   /^(EXIF|ExifIFD|GPS|IFD0|IFD1|InteropIFD|MakerNotes|XMP-exif|XMP-exifEX|XMP-photoshop|XMP-xmp|XMP-iptcCore|XMP-iptcExt)$/i;
 
-const PDF_INFO_TAG = /^(Author|Creator|Producer)$/i;
+const PDF_IDENTITY_TAG = /^(Author|Creator)$/i;
 
 function walk(dir, files) {
   let entries;
@@ -53,7 +53,7 @@ function hasExiftool() {
   }
 }
 
-function hitsFromExiftool(file) {
+function readExiftool(file) {
   let stdout = '';
   try {
     stdout = execFileSync('exiftool', ['-json', '-g1', '-a', '-s', file], {
@@ -67,14 +67,53 @@ function hitsFromExiftool(file) {
     stdout = fromError;
   }
   const parsed = JSON.parse(stdout);
-  const doc = parsed[0] ?? {};
+  return parsed[0] ?? {};
+}
+
+function tagMessages(value) {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (value === undefined || value === null || value === '') return [];
+  return [String(value)];
+}
+
+function hitsFromExiftool(doc) {
   const hits = [];
   for (const [group, value] of Object.entries(doc)) {
     if (group === 'SourceFile') continue;
     if (PRIVACY_GROUP.test(group)) hits.push(group);
     if (!value || typeof value !== 'object') continue;
     for (const tag of Object.keys(value)) {
-      if (/gps|latitude|longitude/i.test(tag) || PDF_INFO_TAG.test(tag)) hits.push(`${group}:${tag}`);
+      if (/gps|latitude|longitude/i.test(tag)) hits.push(`${group}:${tag}`);
+    }
+  }
+  return hits;
+}
+
+/** PDFs are not trustworthy when ExifTool could not read them, or when they carry author identity. */
+function hitsFromPdf(doc, file) {
+  const hits = [];
+  const tool = doc.ExifTool && typeof doc.ExifTool === 'object' ? doc.ExifTool : {};
+  for (const key of ['Error', 'Warning']) {
+    for (const message of tagMessages(tool[key])) {
+      hits.push(`ExifTool:${key}: ${message}`);
+    }
+  }
+  const fileType = doc.File && typeof doc.File === 'object' ? doc.File.FileType : undefined;
+  if (fileType !== 'PDF') {
+    hits.push(`File:FileType is ${fileType ?? 'missing'}, expected PDF`);
+  }
+  for (const [group, value] of Object.entries(doc)) {
+    if (!value || typeof value !== 'object') continue;
+    for (const [tag, tagValue] of Object.entries(value)) {
+      if (/^producer$/i.test(tag)) {
+        console.warn(
+          `check-images: ${file}: PDF Producer is present (${tagValue}). Not a failure; this is tool metadata.`,
+        );
+        continue;
+      }
+      if (PDF_IDENTITY_TAG.test(tag) || /gps|latitude|longitude/i.test(tag)) {
+        hits.push(`${group}:${tag}`);
+      }
     }
   }
   return hits;
@@ -89,36 +128,40 @@ function hitsFromBytes(file) {
     hits.push('PNG eXIf chunk');
   }
   if (/GPSLatitude|GPSLongitude|GPSPosition|GPSDestLatitude/.test(latin)) hits.push('GPS text');
-  if (file.toLowerCase().endsWith('.pdf')) {
-    if (/\/Author\b/.test(latin)) hits.push('PDF Author');
-    if (/\/Creator\b/.test(latin)) hits.push('PDF Creator');
-    if (/\/Producer\b/.test(latin)) hits.push('PDF Producer');
-    if (/\/GPS\b/i.test(latin)) hits.push('PDF GPS');
-  }
   return hits;
 }
 
 const args = process.argv.slice(2);
 const files = args.length > 0 ? args : ROOTS.flatMap((root) => walk(root, []));
 const useExiftool = hasExiftool();
+const pdfs = files.filter((file) => file.toLowerCase().endsWith('.pdf'));
 
 if (files.length === 0) {
   console.log('check-images: no images under public/ or src/.');
   process.exit(0);
 }
 
+if (pdfs.length > 0 && !useExiftool) {
+  console.error(
+    `check-images: ${pdfs.length} PDF(s) present but exiftool is not installed. A byte scan misses compressed metadata and escaped PDF names. Install exiftool and retry (Debian/Ubuntu: sudo apt-get install libimage-exiftool-perl).`,
+  );
+  process.exit(1);
+}
+
 console.log(
   useExiftool
-    ? `check-images: scanning ${files.length} file(s) with exiftool and a byte scan.`
-    : `check-images: exiftool not found; scanning ${files.length} file(s) for EXIF headers, GPS tags, and PDF author/creator keys.`,
+    ? `check-images: scanning ${files.length} file(s) with exiftool${pdfs.length ? ' (PDFs require a clean ExifTool read)' : ''}.`
+    : `check-images: exiftool not found; scanning ${files.length} non-PDF file(s) for EXIF headers and GPS tags.`,
 );
 
 let failed = 0;
 for (const file of files) {
-  const hits = hitsFromBytes(file);
+  const isPdf = file.toLowerCase().endsWith('.pdf');
+  const hits = isPdf ? [] : hitsFromBytes(file);
   if (useExiftool) {
     try {
-      hits.push(...hitsFromExiftool(file));
+      const doc = readExiftool(file);
+      hits.push(...(isPdf ? hitsFromPdf(doc, file) : hitsFromExiftool(doc)));
     } catch (error) {
       failed += 1;
       console.error(error instanceof Error ? error.message : error);
@@ -131,8 +174,9 @@ for (const file of files) {
 }
 
 if (failed > 0) {
-  console.error(`\ncheck-images: ${failed} file(s) contain EXIF, GPS, or PDF author/creator metadata.`);
-  console.error('Strip it with: exiftool -all= <file>');
+  console.error(`\ncheck-images: ${failed} file(s) contain EXIF, GPS, or PDF author metadata, or could not be read.`);
+  console.error('Images: exiftool -all= <file>');
+  console.error('PDFs: exiftool -overwrite_original -all:all= <file> && qpdf --linearize <file> <out.pdf>');
   process.exit(1);
 }
 

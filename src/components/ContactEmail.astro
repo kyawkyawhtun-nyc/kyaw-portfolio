@@ -1,0 +1,14 @@
+---
+import { PUBLIC_EMAIL, entityEncode } from '../lib/contact';
+
+interface Props {
+  label?: string;
+}
+
+const { label } = Astro.props;
+const encoded = entityEncode(PUBLIC_EMAIL);
+const text = label ?? encoded;
+const html = `<a href="mailto:${encoded}">${text}</a>`;
+---
+
+<Fragment set:html={html} />

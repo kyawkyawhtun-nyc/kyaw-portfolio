@@ -1,0 +1,30 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { siteHref } from '../lib/site';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+---
+
+<a class="project-card" href={siteHref(`projects/${project.id}/`)}>
+  <div class="project-card__meta">
+    {project.data.badge ? <span class="badge">{project.data.badge}</span> : null}
+    <span class="tool-list">{project.data.meta}</span>
+  </div>
+  <h3>{project.data.title}</h3>
+  <p class="project-card__summary">{project.data.summary}</p>
+  <div class="project-card__metrics">
+    {
+      project.data.cardMetrics.map((metric) => (
+        <div>
+          <span class="metric__value">{metric.value}</span>
+          <span class="metric__label">{metric.label}</span>
+        </div>
+      ))
+    }
+  </div>
+  <span class="project-card__cta">Read the case study →</span>
+</a>

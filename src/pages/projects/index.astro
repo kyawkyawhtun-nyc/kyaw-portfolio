@@ -1,28 +1,27 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { siteHref } from '../../lib/site';
+import ProjectCard from '../../components/ProjectCard.astro';
 
-const projects = (await getCollection('projects')).sort((a, b) =>
-  a.data.title.localeCompare(b.data.title),
-);
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <BaseLayout
   title="Projects"
-  description="Placeholder index of data analysis projects."
+  description="Case studies in cleaning, validating, and explaining messy operational data."
 >
-  <h1>Projects</h1>
-  <p class="muted">Placeholder project list. No real datasets are included.</p>
-  <ul>
-    {
-      projects.map((project) => (
-        <li>
-          <a href={siteHref(`projects/${project.id}/`)}>{project.data.title}</a>
-          <p>{project.data.summary}</p>
-          <p class="muted">Tools: {project.data.tools.join(', ')}</p>
-        </li>
-      ))
-    }
-  </ul>
+  <section class="section" aria-labelledby="projects-index-title">
+    <div class="container">
+      <header class="section__header">
+        <span class="eyebrow">02 — Projects</span>
+        <h1 id="projects-index-title">Case studies, not just repo links.</h1>
+        <p>
+          Each project starts with messy or incomplete source data. The write-up covers how it was cleaned, what was found, and how the result was shown to a decision-maker.
+        </p>
+      </header>
+      <div class="project-grid">
+        {projects.map((project) => <ProjectCard project={project} />)}
+      </div>
+    </div>
+  </section>
 </BaseLayout>

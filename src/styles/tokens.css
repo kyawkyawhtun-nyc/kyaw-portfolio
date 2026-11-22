@@ -1,19 +1,19 @@
 :root {
   /* Color — light (required) */
-  --color-bg: #f4f1ea;
-  --color-bg-elevated: #fffcf7;
-  --color-bg-muted: #eae6dc;
-  --color-ink: #15202b;
-  --color-ink-muted: #3e4a57;
-  --color-ink-subtle: #585f69;
-  --color-accent: #0e5c57;
-  --color-accent-hover: #0a4743;
-  --color-accent-soft: #dcecea;
+  --color-bg: #f5f5f7;
+  --color-bg-elevated: #ffffff;
+  --color-bg-muted: #ededf0;
+  --color-ink: #1d1d1f;
+  --color-ink-muted: #515154;
+  --color-ink-subtle: #626267;
+  --color-accent: #0066cc;
+  --color-accent-hover: #004f9e;
+  --color-accent-soft: #e8f2ff;
   --color-highlight: #b5471d;
   --color-highlight-soft: #f6e6dc;
-  --color-border: #ddd8ce;
-  --color-border-strong: #c4bdb0;
-  --color-focus: #0e5c57;
+  --color-border: #e2e2e7;
+  --color-border-strong: #c5c5cc;
+  --color-focus: #0066cc;
   --color-on-accent: #ffffff;
   --color-error: #8b1e1e;
   --color-error-bg: #f8e8e6;
@@ -21,14 +21,14 @@
 
   /* Data visualization — WCAG AA graphical contrast on --color-bg-elevated */
   --color-chart-bar: #728786;
-  --color-chart-accent: #0e5c57;
+  --color-chart-accent: #0066cc;
   --color-chart-muted: #7a838c;
   --color-chart-warm: #b5471d;
   --color-chart-warm-muted: #b8683d;
   --color-chart-grid: #e3ded4;
 
   /* Self-hosted family names from @fontsource. Fallbacks match the spec. */
-  --font-serif: "Newsreader Variable", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-serif: var(--font-sans); /* A unified sans-serif display system. */
   --font-sans: "Source Sans 3 Variable", "Source Sans Pro", "Segoe UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 
@@ -48,7 +48,7 @@
   --leading-normal: 1.6;
   --leading-relaxed: 1.7;
 
-  --tracking-tight: -0.02em;
+  --tracking-tight: -0.035em;
   --tracking-wide: 0.08em;
   --tracking-wider: 0.14em;
 
@@ -65,10 +65,10 @@
   --space-20: 5rem;
   --space-24: 6rem;
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
   --radius-pill: 999px;
 
   --shadow-sm: 0 1px 2px rgba(21, 32, 43, 0.06);
@@ -77,7 +77,7 @@
 
   --container: 72rem;
   --narrow: 42rem;
-  --header-h: 4rem;
+  --header-h: 3.75rem;
   --gutter: 1.25rem;
 
   --focus-ring: 2px solid var(--color-accent);
@@ -102,21 +102,21 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-bg: #12181f;
-    --color-bg-elevated: #1a222c;
-    --color-bg-muted: #1e2732;
-    --color-ink: #ede8df;
-    --color-ink-muted: #c5ccd4;
-    --color-ink-subtle: #a8b0ba;
-    --color-accent: #4ecdc4;
-    --color-accent-hover: #7edad3;
-    --color-accent-soft: #1a3333;
+    --color-bg: #101012;
+    --color-bg-elevated: #1c1c1f;
+    --color-bg-muted: #26262a;
+    --color-ink: #f5f5f7;
+    --color-ink-muted: #d2d2d7;
+    --color-ink-subtle: #aaaab2;
+    --color-accent: #79b8ff;
+    --color-accent-hover: #a5d0ff;
+    --color-accent-soft: #192c43;
     --color-highlight: #e08a5c;
     --color-highlight-soft: #3a261c;
-    --color-border: #2a3440;
-    --color-border-strong: #3d4a58;
-    --color-focus: #4ecdc4;
-    --color-on-accent: #12181f;
+    --color-border: #333338;
+    --color-border-strong: #525259;
+    --color-focus: #79b8ff;
+    --color-on-accent: #101012;
     --color-error: #f0a8a8;
     --color-error-bg: #3a2222;
     --color-overlay: rgba(0, 0, 0, 0.6);
@@ -124,7 +124,7 @@
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
     --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
     --color-chart-bar: #5f7b86;
-    --color-chart-accent: #4ecdc4;
+    --color-chart-accent: #79b8ff;
     --color-chart-muted: #687584;
     --color-chart-warm: #e08a5c;
     --color-chart-warm-muted: #c27852;
@@ -133,21 +133,21 @@
 }
 
 [data-theme="dark"] {
-  --color-bg: #12181f;
-  --color-bg-elevated: #1a222c;
-  --color-bg-muted: #1e2732;
-  --color-ink: #ede8df;
-  --color-ink-muted: #c5ccd4;
-  --color-ink-subtle: #a8b0ba;
-  --color-accent: #4ecdc4;
-  --color-accent-hover: #7edad3;
-  --color-accent-soft: #1a3333;
+  --color-bg: #101012;
+  --color-bg-elevated: #1c1c1f;
+  --color-bg-muted: #26262a;
+  --color-ink: #f5f5f7;
+  --color-ink-muted: #d2d2d7;
+  --color-ink-subtle: #aaaab2;
+  --color-accent: #79b8ff;
+  --color-accent-hover: #a5d0ff;
+  --color-accent-soft: #192c43;
   --color-highlight: #e08a5c;
   --color-highlight-soft: #3a261c;
-  --color-border: #2a3440;
-  --color-border-strong: #3d4a58;
-  --color-focus: #4ecdc4;
-  --color-on-accent: #12181f;
+  --color-border: #333338;
+  --color-border-strong: #525259;
+  --color-focus: #79b8ff;
+  --color-on-accent: #101012;
   --color-error: #f0a8a8;
   --color-error-bg: #3a2222;
   --color-overlay: rgba(0, 0, 0, 0.6);
@@ -155,7 +155,7 @@
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
   --color-chart-bar: #5f7b86;
-  --color-chart-accent: #4ecdc4;
+  --color-chart-accent: #79b8ff;
   --color-chart-muted: #687584;
   --color-chart-warm: #e08a5c;
   --color-chart-warm-muted: #c27852;

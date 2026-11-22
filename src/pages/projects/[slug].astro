@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { siteHref } from '../../lib/site';
+import { sectionHref, siteHref } from '../../lib/site';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -13,45 +13,74 @@ export async function getStaticPaths() {
 
 const { project } = Astro.props;
 const { Content } = await render(project);
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const index = projects.findIndex((item) => item.id === project.id);
+const next = index >= 0 && index < projects.length - 1 ? projects[index + 1] : undefined;
+const metaParts = project.data.meta.split('·').map((part) => part.trim()).filter(Boolean);
 ---
 
-<BaseLayout title={project.data.title} description={project.data.summary}>
-  <p><a href={siteHref('projects/')}>All projects</a></p>
-  <h1>{project.data.title}</h1>
-  <p>{project.data.summary}</p>
-  <p class="muted">Dataset: {project.data.dataset}</p>
-  <h2>Tools</h2>
-  <ul>
-    {project.data.tools.map((tool) => <li>{tool}</li>)}
-  </ul>
-  {
-    project.data.image ? (
-      <img src={siteHref(project.data.image)} alt={project.data.title} />
-    ) : null
-  }
-  {
-    project.data.links.length > 0 ? (
-      <>
-        <h2>Links</h2>
-        <ul>
-          {project.data.links.map((link) => {
-            const external = /^https?:\/\//i.test(link.href);
-            return (
-              <li>
-                <a
-                  href={external ? link.href : siteHref(link.href)}
-                  {...(external
-                    ? { target: '_blank', rel: 'noopener noreferrer' }
-                    : {})}
-                >
+<BaseLayout title={project.data.title} description={project.data.description} current="projects">
+  <article>
+    <header class="case-hero">
+      <div class="container">
+        <p class="eyebrow">
+          <a href={sectionHref(Astro.url.pathname, 'projects')}>Projects</a> / {project.data.year}
+        </p>
+        <h1>{project.data.title}</h1>
+        <p class="case-hero__lede">{project.data.lede}</p>
+        <p class="case-hero__meta">
+          {metaParts.map((part) => <span>{part}</span>)}
+        </p>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="metric-strip" role="list" aria-label="Project metrics">
+        {
+          project.data.metrics.map((metric) => (
+            <div class="metric-strip__item" role="listitem">
+              <span class="metric__value">{metric.value}</span>
+              <span class="metric__label">{metric.label}</span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="prose">
+        <Content />
+        {
+          project.data.image ? (
+            <img src={siteHref(project.data.image)} alt={project.data.imageAlt ?? project.data.title} />
+          ) : null
+        }
+        <div class="case-links">
+          {
+            project.data.links.map((link) => {
+              const variant = link.variant === 'secondary' ? 'btn--secondary' : 'btn--primary';
+              if (link.placeholder || !link.href) {
+                return <span class:list={['btn', variant, 'is-placeholder']}>{link.label}</span>;
+              }
+              const external = /^https?:\/\//i.test(link.href);
+              return (
+                <a class:list={['btn', variant]} href={external ? link.href : siteHref(link.href)}>
                   {link.label}
                 </a>
-              </li>
-            );
-          })}
-        </ul>
-      </>
-    ) : null
-  }
-  <Content />
+              );
+            })
+          }
+        </div>
+      </div>
+
+      <nav class="case-nav" aria-label="More projects">
+        <a href={sectionHref(Astro.url.pathname, 'projects')}>← All projects</a>
+        {
+          next ? (
+            <a href={siteHref(`projects/${next.id}/`)}>Next: {next.data.title} →</a>
+          ) : null
+        }
+      </nav>
+    </div>
+  </article>
 </BaseLayout>

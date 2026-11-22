@@ -1,6 +1,6 @@
 # kyaw-portfolio
 
-Static personal portfolio skeleton for a data analyst. Pages, projects, and contact details are placeholders. Visual design is intentionally minimal until a separate spec lands.
+Static personal portfolio for a data analyst. Page copy follows the design spec. Slots the owner still has to fill are marked `TODO(owner)`.
 
 The deployed URL, once GitHub Pages is turned on, is `https://kyawkyawhtun-nyc.github.io/kyaw-portfolio/`.
 
@@ -26,6 +26,8 @@ npm run dev
 ```
 
 The site is served under `/kyaw-portfolio/` because Astro `base` is set for GitHub project Pages.
+
+Pages are built as directories (`build.format: 'directory'`), which is what GitHub Pages serves: `/about/` is the page, and `/about` redirects to it. `trailingSlash` is `ignore` so generated links still use that trailing slash, while `astro preview` serves a slashless URL as the same page or the custom 404 instead of Astro’s trailing-slash error. `sitemap.xml` and `robots.txt` are build-time endpoints. `robots.txt` points at the absolute sitemap URL.
 
 ## Scripts
 
@@ -54,8 +56,7 @@ CI also runs `npm audit --audit-level=high` and an offline internal link check.
 - Styles are external files (`build.inlineStylesheets: 'never'`). There is no client-side framework and no inline script. Syntax highlighting is done at build time.
 - External new-tab links are written in the page templates (contact and project frontmatter). Do not put `target="_blank"` in Markdown unless `rel="noopener noreferrer"` is on the same tag. `npm run check:dist` rejects a new-tab link that omits it.
 - CI sets `ASTRO_TELEMETRY_DISABLED=1` so the Astro CLI does not send usage telemetry. Locally, `npx astro telemetry disable` does the same for your machine.
-- Fonts are a system stack. There is no Google Fonts, analytics, third-party CDN, or form host. Contact is an obfuscated `mailto:` plus a LinkedIn placeholder.
-- External new-tab links use `rel="noopener noreferrer"`.
+- Fonts are self-hosted from pinned `@fontsource` packages (Newsreader, Source Sans 3, and IBM Plex Mono), Latin files only. There is no Google Fonts, analytics, third-party CDN, or form host. Contact is an obfuscated `mailto:`, a GitHub link, and a LinkedIn placeholder.
 - No secrets belong in the repo, in logs, in pull requests, or in `PUBLIC_` variables. `.env.example` is a comment only.
 - Third-party GitHub Actions are pinned to a full commit SHA. CI permissions are `contents: read`. There is no `pull_request_target`.
 - CI scans the full git history with the gitleaks binary (v8.30.1, checksum-pinned). No license key is stored or required for this personal account. `gitleaks-action` is not used because that action only scans the commits on the triggering event, not the full history.
@@ -82,7 +83,7 @@ exiftool -overwrite_original -all:all= input.pdf && qpdf --warning-exit-0 --line
 
 ## Content
 
-Project write-ups are Markdown files in `src/content/projects/` validated by the schema in `src/content.config.ts` (`title`, `summary`, `tools`, `dataset`, `links`, optional `image`). A project link `href` must be an `https://` URL, a root-relative path (`/…`, not `//…`), or a `#` fragment. `javascript:`, `http:`, and `data:` are rejected. The two sample projects are dummy text.
+Project write-ups are Markdown files in `src/content/projects/` validated by the schema in `src/content.config.ts`. The case-study template reads that frontmatter. When present, a project link `href` must be an `https://` URL, a root-relative path (`/…`, not `//…`), or a `#` fragment; `javascript:`, `http:`, and `data:` are rejected. Missing owner content is marked `TODO(owner)` in the page.
 
 Internal links go through `siteHref()` so they keep the `/kyaw-portfolio` base.
 

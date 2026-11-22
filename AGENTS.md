@@ -26,6 +26,7 @@ Rules for the OpenAI Codex CLI (and any other coding agent) working in this repo
 ## Dependencies
 
 - Do not add dependencies without asking.
+- Self-hosted fonts are the pinned `@fontsource-variable/newsreader`, `@fontsource-variable/source-sans-3`, and `@fontsource/ibm-plex-mono` packages. Do not replace them with a CDN or Google Fonts.
 
 ## Secrets
 

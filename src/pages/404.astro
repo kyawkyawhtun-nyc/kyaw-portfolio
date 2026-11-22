@@ -3,8 +3,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { siteHref } from '../lib/site';
 ---
 
-<BaseLayout title="Page not found" description="Placeholder 404 page.">
-  <h1>Page not found</h1>
-  <p>That page is not part of this placeholder site.</p>
-  <p><a href={siteHref()}>Back home</a></p>
+<BaseLayout title="Page not found" description="That page is not on this site." includeCanonical={false}>
+  <section class="section">
+    <div class="container prose">
+      <h1>Page not found</h1>
+      <p>That page is not part of this site.</p>
+      <p><a class="btn btn--primary" href={siteHref()}>Back home</a></p>
+    </div>
+  </section>
 </BaseLayout>

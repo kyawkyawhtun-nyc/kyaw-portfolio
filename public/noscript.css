@@ -1,0 +1,18 @@
+/* Keep the primary nav reachable when JavaScript is unavailable. */
+@media (max-width: 767px) {
+  .nav-toggle {
+    display: none;
+  }
+
+  .site-nav {
+    display: block;
+    position: absolute;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    background: var(--color-bg-elevated);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-4) var(--gutter) var(--space-6);
+  }
+}

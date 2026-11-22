@@ -1,0 +1,195 @@
+---
+interface Props {
+  idPrefix?: string;
+}
+
+const { idPrefix = 'nyc311-response' } = Astro.props;
+const titleId = `${idPrefix}-title`;
+const descId = `${idPrefix}-desc`;
+
+interface ResponseRow {
+  labelTop: string;
+  labelSub: string;
+  days: number;
+  note: string;
+  barClass: string;
+  valueClass: string;
+}
+
+const rows: ResponseRow[] = [
+  {
+    labelTop: 'Tree Alive',
+    labelSub: 'in Poor Condition',
+    days: 129.6,
+    note: '7.0× avg',
+    barClass: 'chart-bar-warm',
+    valueClass: 'chart-value-warm',
+  },
+  {
+    labelTop: 'September Monthly Avg',
+    labelSub: 'Damaged Tree (worst)',
+    days: 91.2,
+    note: '4.9× avg',
+    barClass: 'chart-bar-warm-muted',
+    valueClass: 'chart-value-strong',
+  },
+  {
+    labelTop: 'Entire Tree',
+    labelSub: 'Has Fallen Down',
+    days: 36.1,
+    note: '2.0× avg',
+    barClass: 'chart-bar-default',
+    valueClass: 'chart-value-strong',
+  },
+  {
+    labelTop: 'All 311 Complaints',
+    labelSub: 'Staten Island average',
+    days: 18.5,
+    note: 'Baseline',
+    barClass: 'chart-bar-accent',
+    valueClass: 'chart-value-accent',
+  },
+];
+
+const width = 640;
+const height = 272;
+const padLeft = 166;
+const padRight = 114;
+const padTop = 26;
+const rowStep = 48;
+const barHeight = 24;
+const plotWidth = width - padLeft - padRight; // 360
+const yAxisBottom = padTop + rows.length * rowStep; // 218
+const xMax = 140;
+
+const ticks = [0, 30, 60, 90, 120];
+const xFor = (val: number) => Number((padLeft + (val / xMax) * plotWidth).toFixed(1));
+const wFor = (val: number) => Number(((val / xMax) * plotWidth).toFixed(1));
+const baselineX = xFor(18.5);
+---
+
+<figure class="chart-figure">
+  <figcaption class="chart-header">
+    <span class="chart-kicker">Staten Island resolution time gap · 2024</span>
+    <p class="chart-title">Speed follows damage already done</p>
+    <p class="chart-subtitle">
+      Average days to close on Staten Island (closed 2024 cases): preventive poor-condition tree calls wait 7× longer than the borough average.
+    </p>
+  </figcaption>
+
+  <div class="chart-canvas">
+    <svg
+      class="chart-svg"
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      role="img"
+      aria-labelledby={`${titleId} ${descId}`}
+    >
+      <title id={titleId}>Staten Island 311 average resolution times in days, 2024 closed cases</title>
+      <desc id={descId}>
+        Horizontal bar chart comparing average resolution times for closed 2024 NYC 311 cases on Staten Island: Tree Alive in Poor Condition averages 129.6 days (7.0 times the borough average), September worst monthly average for Damaged Tree is 91.2 days, Entire Tree Has Fallen Down averages 36.1 days, and all 311 complaint types on Staten Island average 18.5 days.
+      </desc>
+
+      {
+        ticks.map((tick) => {
+          const x = xFor(tick);
+          return (
+            <g>
+              <line
+                class={tick === 0 ? 'chart-axis-line' : 'chart-grid-line'}
+                x1={x}
+                y1={padTop - 4}
+                x2={x}
+                y2={yAxisBottom}
+              />
+              <text
+                class="chart-axis-label"
+                x={x}
+                y={yAxisBottom + 18}
+                text-anchor="middle"
+              >
+                {tick}d
+              </text>
+            </g>
+          );
+        })
+      }
+
+      {/* Borough average reference line */}
+      <line
+        class="chart-ref-line"
+        x1={baselineX}
+        y1={padTop - 8}
+        x2={baselineX}
+        y2={yAxisBottom}
+      />
+      <text
+        class="chart-callout-accent"
+        x={baselineX + 5}
+        y={padTop - 10}
+        text-anchor="start"
+      >
+        18.5d borough avg
+      </text>
+
+      {
+        rows.map((row, idx) => {
+          const slotTop = padTop + idx * rowStep;
+          const barY = slotTop + (rowStep - barHeight) / 2;
+          const barW = wFor(row.days);
+          const textMidY = slotTop + rowStep / 2;
+
+          return (
+            <g>
+              <text
+                class="chart-cat-label"
+                x={padLeft - 12}
+                y={textMidY - 2}
+                text-anchor="end"
+              >
+                {row.labelTop}
+              </text>
+              <text
+                class="chart-cat-sub"
+                x={padLeft - 12}
+                y={textMidY + 12}
+                text-anchor="end"
+              >
+                {row.labelSub}
+              </text>
+              <rect
+                class={row.barClass}
+                x={padLeft}
+                y={barY}
+                width={barW}
+                height={barHeight}
+                rx="2"
+              />
+              <text
+                x={padLeft + barW + 8}
+                y={textMidY + 4}
+                text-anchor="start"
+              >
+                <tspan class={row.valueClass}>{row.days.toFixed(1)}d</tspan>
+                <tspan class="chart-value-note" dx="6">({row.note})</tspan>
+              </text>
+            </g>
+          );
+        })
+      }
+
+      <text
+        class="chart-axis-unit"
+        x={padLeft + plotWidth / 2}
+        y={height - 6}
+        text-anchor="middle"
+      >
+        Average days to close (closed 2024 cases, Staten Island)
+      </text>
+    </svg>
+  </div>
+
+  <p class="chart-source">
+    Source: NYC Open Data 311 Socrata API (closed 2024 Staten Island service requests).
+  </p>
+</figure>

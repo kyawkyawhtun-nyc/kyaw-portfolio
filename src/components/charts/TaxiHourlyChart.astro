@@ -1,0 +1,255 @@
+---
+interface Props {
+  idPrefix?: string;
+}
+
+const { idPrefix = 'taxi-hourly' } = Astro.props;
+const titleId = `${idPrefix}-title`;
+const descId = `${idPrefix}-desc`;
+
+const hourlyCounts: number[] = [
+  921_136,
+  605_771,
+  399_842,
+  259_959,
+  168_173,
+  200_151,
+  508_626,
+  954_767,
+  1_274_721,
+  1_450_046,
+  1_608_138,
+  1_747_836,
+  1_884_871,
+  1_921_116,
+  2_060_246,
+  2_110_309,
+  2_096_862,
+  2_282_181,
+  2_399_697,
+  2_174_313,
+  1_877_813,
+  1_799_819,
+  1_646_078,
+  1_319_246,
+];
+
+const width = 640;
+const height = 324;
+const padLeft = 48;
+const padRight = 16;
+const padTop = 62;
+const padBottom = 44;
+const plotWidth = width - padLeft - padRight; // 576
+const plotHeight = height - padTop - padBottom; // 218
+const yBottom = padTop + plotHeight; // 280
+const yMax = 2_600_000;
+
+const ticks = [
+  { value: 0, label: '0' },
+  { value: 500_000, label: '0.5M' },
+  { value: 1_000_000, label: '1.0M' },
+  { value: 1_500_000, label: '1.5M' },
+  { value: 2_000_000, label: '2.0M' },
+  { value: 2_500_000, label: '2.5M' },
+];
+
+const hourTicks = [
+  { hour: 0, label: '12 AM' },
+  { hour: 3, label: '3 AM' },
+  { hour: 6, label: '6 AM' },
+  { hour: 9, label: '9 AM' },
+  { hour: 12, label: '12 PM' },
+  { hour: 15, label: '3 PM' },
+  { hour: 18, label: '6 PM' },
+  { hour: 21, label: '9 PM' },
+];
+
+const slotWidth = plotWidth / 24; // 24
+const barWidth = 17;
+const barOffset = (slotWidth - barWidth) / 2; // 3.5
+
+const yFor = (val: number) => Number((yBottom - (val / yMax) * plotHeight).toFixed(1));
+const hFor = (val: number) => Number(((val / yMax) * plotHeight).toFixed(1));
+const cxFor = (hour: number) => Number((padLeft + hour * slotWidth + slotWidth / 2).toFixed(1));
+
+const troughCx = cxFor(4);
+const troughBarY = yFor(hourlyCounts[4]);
+
+const commuteCx = cxFor(8);
+const commuteBarY = yFor(hourlyCounts[8]);
+
+const peakCx = cxFor(18);
+const peakBarY = yFor(hourlyCounts[18]);
+---
+
+<figure class="chart-figure">
+  <figcaption class="chart-header">
+    <span class="chart-kicker">Intraday demand shape</span>
+    <p class="chart-title">NYC Yellow Taxi trips by hour of day</p>
+    <p class="chart-subtitle">
+      Hourly volume across 33.67M clean trips (Jan–Nov 2022) — a 14.3× swing between 4 AM and 6 PM.
+    </p>
+  </figcaption>
+
+  <div class="chart-legend" aria-hidden="true">
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--accent"></span>
+      6 PM peak (2.40M)
+    </span>
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--warm"></span>
+      4 AM trough (168K)
+    </span>
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--default"></span>
+      Other hours
+    </span>
+  </div>
+
+  <div class="chart-canvas">
+    <svg
+      class="chart-svg"
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      role="img"
+      aria-labelledby={`${titleId} ${descId}`}
+    >
+      <title id={titleId}>NYC Yellow Taxi trips by hour of day, January to November 2022</title>
+      <desc id={descId}>
+        24-hour vertical bar chart summing to 33,671,717 valid trips. Demand bottoms out at 4 AM with 168,173 trips (168K), rises sharply to 1,274,721 trips (1.27M) at the 8 AM commute, stays above 1.88M from noon through 8 PM, and peaks at 6 PM (18:00) with 2,399,697 trips (2.40M) — roughly a 14x swing from trough to peak.
+      </desc>
+
+      {
+        ticks.map((tick) => {
+          const y = yFor(tick.value);
+          return (
+            <g>
+              <line
+                class={tick.value === 0 ? 'chart-axis-line' : 'chart-grid-line'}
+                x1={padLeft}
+                y1={y}
+                x2={width - padRight}
+                y2={y}
+              />
+              <text
+                class="chart-axis-label-end"
+                x={padLeft - 8}
+                y={y + 4}
+                text-anchor="end"
+              >
+                {tick.label}
+              </text>
+            </g>
+          );
+        })
+      }
+
+      {
+        hourlyCounts.map((count, hour) => {
+          const x = Number((padLeft + hour * slotWidth + barOffset).toFixed(1));
+          const barY = yFor(count);
+          const barH = hFor(count);
+          const barClass =
+            hour === 18
+              ? 'chart-bar-accent'
+              : hour === 4
+                ? 'chart-bar-warm'
+                : 'chart-bar-default';
+          return (
+            <rect
+              class={barClass}
+              x={x}
+              y={barY}
+              width={barWidth}
+              height={barH}
+              rx="1.5"
+            />
+          );
+        })
+      }
+
+      {/* 4 AM trough annotation */}
+      <g>
+        <line
+          class="chart-leader-warm"
+          x1={troughCx}
+          y1={troughBarY - 3}
+          x2={troughCx}
+          y2={176}
+        />
+        <circle class="chart-leader-dot-warm" cx={troughCx} cy={troughBarY - 3} r="2.5" />
+        <text class="chart-callout-warm" x={troughCx} y={156} text-anchor="middle">
+          4 AM trough · 168K
+        </text>
+        <text class="chart-callout-sub" x={troughCx} y={170} text-anchor="middle">
+          ~14× swing to peak
+        </text>
+      </g>
+
+      {/* 8 AM commute annotation */}
+      <g>
+        <line
+          class="chart-leader"
+          x1={commuteCx}
+          y1={commuteBarY - 3}
+          x2={commuteCx}
+          y2={106}
+        />
+        <circle class="chart-leader-dot" cx={commuteCx} cy={commuteBarY - 3} r="2.5" />
+        <text class="chart-callout-ink" x={commuteCx} y={86} text-anchor="middle">
+          8 AM commute
+        </text>
+        <text class="chart-callout-sub" x={commuteCx} y={100} text-anchor="middle">
+          1.27M trips
+        </text>
+      </g>
+
+      {/* 6 PM peak annotation */}
+      <g>
+        <line
+          class="chart-leader-accent"
+          x1={peakCx}
+          y1={peakBarY - 3}
+          x2={peakCx}
+          y2={56}
+        />
+        <text class="chart-callout-accent" x={peakCx} y={36} text-anchor="middle">
+          6 PM peak · 2.40M
+        </text>
+        <text class="chart-callout-sub" x={peakCx} y={50} text-anchor="middle">
+          Highest hourly demand
+        </text>
+      </g>
+
+      {
+        hourTicks.map((tick) => {
+          const cx = cxFor(tick.hour);
+          return (
+            <text
+              class={tick.hour === 18 ? 'chart-axis-label chart-axis-label-accent' : 'chart-axis-label'}
+              x={cx}
+              y={yBottom + 18}
+              text-anchor="middle"
+            >
+              {tick.label}
+            </text>
+          );
+        })
+      }
+
+      <text
+        class="chart-axis-unit"
+        x={padLeft + plotWidth / 2}
+        y={height - 4}
+        text-anchor="middle"
+      >
+        Pickup hour (local NYC time, 24-hour clock)
+      </text>
+    </svg>
+  </div>
+
+  <p class="chart-source">
+    Source: BigQuery EXTRACT(HOUR) aggregation over 33,671,717 valid Jan–Nov 2022 yellow taxi trips.
+  </p>
+</figure>

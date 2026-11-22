@@ -1,0 +1,212 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AboutSection from '../components/AboutSection.astro';
+import ContactSection from '../components/ContactSection.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { siteHref } from '../lib/site';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+
+const skillGroups = [
+  {
+    title: 'Excel & spreadsheets',
+    chips: [
+      'SUMIFS',
+      'VLOOKUP / XLOOKUP',
+      'PivotTables',
+      'Conditional formatting',
+      'Excel reports & dashboards',
+      'Google Sheets',
+    ],
+  },
+  {
+    title: 'SQL',
+    chips: [
+      'BigQuery',
+      'CTEs',
+      'JOINs',
+      'Window functions',
+      'CASE statements',
+      'EXTRACT / datetime analysis',
+      'NYC Open Data / Socrata API',
+    ],
+  },
+  {
+    title: 'Dashboards & reporting',
+    chips: [
+      'Looker Studio',
+      'KPI scorecards',
+      'Time-series & bar charts',
+      'Calculated fields',
+      'Crystal Reports',
+    ],
+  },
+  {
+    title: 'Data cleaning & validation',
+    chips: [
+      'Rule-based cleaning',
+      'Quality checks on multi-million-row datasets',
+      'Source-to-report reconciliation',
+      'Discrepancy investigation',
+      'Documenting logic, sources & refresh procedures',
+    ],
+  },
+  {
+    title: 'Business systems & communication',
+    chips: [
+      'SAP',
+      'Microsoft Office 365',
+      'Word',
+      'PowerPoint',
+      'Teams',
+      'SharePoint',
+      'Written summaries for non-technical audiences',
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Home"
+  description="Portfolio of Kyaw Kyaw Htun, a data analyst in Staten Island, NY. SQL, Excel, and Looker Studio projects that turn messy operational data into decisions."
+>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container">
+      <div class="hero__grid">
+        <div>
+          <p class="eyebrow">Data Analyst · Staten Island, NY</p>
+          <h1 id="hero-title" class="hero__title">I turn messy operational data into decisions.</h1>
+          <p class="hero__lede">
+            Entry-level data analyst roles, remote or NYC hybrid. A decade of retail channel reporting at Thai Samsung Electronics, plus large-dataset SQL work in BigQuery and Looker Studio — cleaning, validating, and explaining findings for non-technical stakeholders.
+          </p>
+          <div class="btn-row">
+            <a class="btn btn--primary" href="#projects">View projects</a>
+            <a class="btn btn--secondary" href="#contact">Get in touch</a>
+          </div>
+        </div>
+        <aside class="finding-card" aria-label="Featured project finding">
+          <p class="finding-card__label">Finding · NYC Yellow Taxi</p>
+          <blockquote>
+            December 2022 was missing from a 36.3-million-row source table — only 57 raw rows. The analysis was scoped to January–November, and cash tips were treated as unrecorded, not zero.
+          </blockquote>
+          <a class="finding-card__link" href={siteHref('projects/nyc-taxi/')}>Read the case study →</a>
+        </aside>
+      </div>
+
+      <div class="proof-bar" role="list">
+        <div role="listitem">
+          <span class="proof-bar__value">36.3M</span>
+          <span class="proof-bar__label">Taxi trip rows analyzed in BigQuery</span>
+        </div>
+        <div role="listitem">
+          <span class="proof-bar__value">33.67M</span>
+          <span class="proof-bar__label">Valid trips after five validation rules</span>
+        </div>
+        <div role="listitem">
+          <span class="proof-bar__value">100+</span>
+          <span class="proof-bar__label">Retail and distribution partners</span>
+        </div>
+        <div role="listitem">
+          <span class="proof-bar__value">10 yrs</span>
+          <span class="proof-bar__label">Channel reporting at Thai Samsung Electronics</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <AboutSection />
+
+  <section class="section" id="projects" aria-labelledby="projects-title">
+    <div class="container">
+      <header class="section__header">
+        <span class="eyebrow">02 — Projects</span>
+        <h2 id="projects-title">Case studies, not just repo links.</h2>
+        <p>
+          Each project starts with messy or incomplete source data. The write-up covers how it was cleaned, what was found, and how the result was shown to a decision-maker.
+        </p>
+      </header>
+      <div class="project-grid">
+        {projects.map((project) => <ProjectCard project={project} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt" id="skills" aria-labelledby="skills-title">
+    <div class="container">
+      <header class="section__header">
+        <span class="eyebrow">03 — Skills</span>
+        <h2 id="skills-title">Tools used to clean, check, and explain.</h2>
+      </header>
+      {/* TODO(owner): Currently learning — Power BI, Tableau, Python (pandas), GA4 — is not on the resume. Add the dashed chip group only after confirmation. */}
+      <div class="skill-groups">
+        {
+          skillGroups.map((group) => (
+            <div class="skill-group">
+              <h3>{group.title}</h3>
+              <ul class="chip-list">
+                {group.chips.map((chip) => (
+                  <li class="chip">{chip}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="experience" aria-labelledby="experience-title">
+    <div class="container">
+      <header class="section__header">
+        <span class="eyebrow">04 — Experience</span>
+        <h2 id="experience-title">Reporting, validation, and operations.</h2>
+      </header>
+
+      <ol class="timeline">
+        <li class="timeline__item">
+          <span class="timeline__dot" aria-hidden="true"></span>
+          <h3 class="timeline__role">Sales Operation Analyst <span class="timeline__org">— The One Freight LLC</span></h3>
+          <span class="timeline__dates">Remote · Jul 2024 – May 2025</span>
+          <ul>
+            <li>Gathered, verified, and prepared operational data for internal reports and client documentation, ensuring accuracy and completeness.</li>
+            <li>Performed accurate, high-volume data entry of orders, invoices, and driver logs across multiple systems; coordinated schedules and monitored for conflicts and inconsistencies.</li>
+          </ul>
+        </li>
+        <li class="timeline__item">
+          <span class="timeline__dot" aria-hidden="true"></span>
+          <h3 class="timeline__role">Channel Manager <span class="timeline__org">— Thai Samsung Electronics</span></h3>
+          <span class="timeline__dates">Nov 2013 – Sep 2023</span>
+          <ul>
+            <li>Developed and maintained Excel- and SAP-based reports and dashboards for daily, weekly, monthly, and quarterly performance reviews across 100+ retail and distribution partners.</li>
+            <li>Validated and reconciled data across multiple reporting sources, researching root causes of discrepancies to maintain data accuracy.</li>
+            <li>Analyzed sales and performance trends, translating findings into actionable insights and recommendations for senior stakeholders.</li>
+            <li>Led process-improvement projects that standardized reporting and reduced report turnaround time across partner channels.</li>
+          </ul>
+        </li>
+      </ol>
+
+      <div class="additional-exp">
+        <h3>Additional experience</h3>
+        <ul>
+          <li>
+            <div>
+              <strong>Fulfillment Associate</strong>
+              <span class="additional-exp__detail">Amazon.com Services LLC, Staten Island, NY · Inventory scanning</span>
+            </div>
+            <span class="additional-exp__dates">May 2026 – Present</span>
+          </li>
+          <li>
+            <div>
+              <strong>Online Shopping Associate</strong>
+              <span class="additional-exp__detail">ShopRite of Amboy Road, Staten Island, NY · Online order handling</span>
+            </div>
+            <span class="additional-exp__dates">Oct 2025 – Apr 2026</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <ContactSection />
+</BaseLayout>

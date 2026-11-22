@@ -1,0 +1,91 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { siteHref } from '../lib/site';
+
+interface Props {
+  title: string;
+  description: string;
+  current?: 'about' | 'projects' | 'skills' | 'experience' | 'contact';
+  /** Status pages omit this. A 404 file is reused for every missing URL. */
+  includeCanonical?: boolean;
+}
+
+const { title, description, current, includeCanonical = true } = Astro.props;
+const canonical = includeCanonical && Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const pageTitle = title === 'Home' ? 'Kyaw Kyaw Htun — Data Analyst' : `${title} — Kyaw Kyaw Htun`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline src={siteHref('theme.js')}></script>
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {canonical ? <link rel="canonical" href={canonical} /> : null}
+    <link rel="icon" href={siteHref('favicon.svg')} type="image/svg+xml" />
+    <noscript>
+      <link rel="stylesheet" href={siteHref('noscript.css')} />
+    </noscript>
+  </head>
+  <body>
+    <Header current={current} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      const nav = document.getElementById('site-nav');
+      const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+      if (toggle && nav) {
+        const setOpen = (open: boolean) => {
+          toggle.setAttribute('aria-expanded', String(open));
+          toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          nav.classList.toggle('is-open', open);
+        };
+
+        toggle.addEventListener('click', () => {
+          setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+        });
+
+        nav.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () => {
+            setOpen(false);
+          });
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && nav.classList.contains('is-open')) {
+            setOpen(false);
+            toggle.focus();
+          }
+        });
+      }
+
+      document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const root = document.documentElement;
+          let currentTheme = root.getAttribute('data-theme');
+          if (currentTheme !== 'light' && currentTheme !== 'dark') {
+            currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          const next = currentTheme === 'dark' ? 'light' : 'dark';
+          root.setAttribute('data-theme', next);
+          try {
+            localStorage.setItem('theme', next);
+          } catch {
+            /* Storage can be blocked. The choice still applies for this view. */
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

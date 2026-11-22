@@ -1,0 +1,17 @@
+#!/bin/sh
+# Optional local hook. Scans staged changes when gitleaks is installed.
+# A missing gitleaks binary does not block the commit; the pre-push hook does.
+# Install with: npm run hooks:install
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed; skipping the secret scan." >&2
+  exit 0
+fi
+
+# </dev/null so gitleaks cannot consume hook stdin.
+if ! gitleaks git --staged --redact --no-banner --verbose </dev/null; then
+  echo "pre-commit: gitleaks found a secret in staged changes. Commit blocked." >&2
+  exit 1
+fi
+
+exit 0

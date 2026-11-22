@@ -1,0 +1,40 @@
+---
+import ContactEmail from './ContactEmail.astro';
+import { GITHUB_LABEL, GITHUB_URL, LINKEDIN_URL, PUBLIC_EMAIL } from '../lib/contact';
+
+const linkedinLabel = LINKEDIN_URL ? LINKEDIN_URL.replace(/^https?:\/\//i, '').replace(/\/$/, '') : '';
+---
+
+<section class="section section--alt" id="contact" aria-labelledby="contact-title">
+  <div class="container">
+    <header class="section__header">
+      <span class="eyebrow">05 — Contact</span>
+      <h2 id="contact-title">Let’s talk about a data analyst role.</h2>
+    </header>
+    <div class="contact__grid">
+      <p class="contact__intro">
+        I’m based in Staten Island, NY, available during U.S. Eastern Time business hours, and open to remote or NYC hybrid work. You can find me on GitHub.
+      </p>
+      <div class="contact-card">
+        <ul class="contact-links">
+          {PUBLIC_EMAIL ? <li>
+            <span class="label">Email</span>
+            <ContactEmail />
+          </li> : null}
+          <li>
+            <span class="label">GitHub</span>
+            <a href={GITHUB_URL}>{GITHUB_LABEL}</a>
+          </li>
+          {
+            LINKEDIN_URL ? (
+              <li>
+                <span class="label">LinkedIn</span>
+                <a href={LINKEDIN_URL}>{linkedinLabel}</a>
+              </li>
+            ) : null
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

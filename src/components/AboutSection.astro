@@ -1,0 +1,90 @@
+---
+import { GITHUB_LABEL, GITHUB_URL } from '../lib/contact';
+import { HEADSHOT_SRC, siteHref } from '../lib/site';
+
+interface Props {
+  headingLevel?: 'h1' | 'h2';
+}
+
+const { headingLevel = 'h2' } = Astro.props;
+const title = 'A reporting operator who now works at dataset scale.';
+---
+
+<section class="section section--alt" id="about" aria-labelledby="about-title">
+  <div class="container">
+    <header class="section__header">
+      <span class="eyebrow">01 — About</span>
+      {
+        headingLevel === 'h1' ? (
+          <h1 id="about-title">{title}</h1>
+        ) : (
+          <h2 id="about-title">{title}</h2>
+        )
+      }
+    </header>
+    <div class="about__grid">
+      <div class="about__body">
+        <p>
+          I’m Kyaw Kyaw Htun, a data analyst based in Staten Island, NY. I’m looking for entry-level data analyst roles — remote or NYC hybrid — where careful cleaning, validation, and clear storytelling matter as much as the query itself.
+        </p>
+        <p>
+          At Thai Samsung Electronics I was a Channel Manager for nearly a decade (2013–2023). I built and maintained Excel- and SAP-based reports and dashboards for daily, weekly, monthly, and quarterly performance reviews across 100+ retail and distribution partners. I validated and reconciled results across sources, researched the root causes of discrepancies, and turned sales and performance trends into recommendations for senior stakeholders. I also led process-improvement work that standardized reporting and reduced report turnaround time.
+        </p>
+        <p>
+          As a remote Sales Operation Analyst at The One Freight LLC (2024–2025), I gathered, verified, and prepared operational data for internal reports and client documentation, and entered high-volume orders, invoices, and driver logs across multiple systems — watching for conflicts and inconsistencies.
+        </p>
+        <p>
+          My recent projects apply that same habit of checking the data before trusting it. On a 36.3-million-row NYC yellow taxi dataset I documented five validation rules, caught a missing month in the source table, and built a Looker Studio dashboard of KPI scorecards and trend charts. On 3.4 million+ NYC 311 requests I compared results across BigQuery and the Socrata API and traced zero-result errors to a frozen dataset copy and an exact-spelling mismatch.
+        </p>
+      </div>
+      <aside class="aside-card" aria-labelledby="about-facts">
+        {
+          HEADSHOT_SRC ? (
+            <figure class="headshot">
+              <img
+                src={siteHref(HEADSHOT_SRC)}
+                width="72"
+                height="72"
+                alt="Portrait of Kyaw Kyaw Htun."
+              />
+              <figcaption class="profile-identity__meta">
+                <span class="profile-identity__name">Kyaw Kyaw Htun</span>
+                <span class="profile-identity__role">Data Analyst · NYC</span>
+              </figcaption>
+            </figure>
+          ) : (
+            <div class="profile-identity">
+              <div class="profile-monogram" aria-hidden="true">KKH</div>
+              <div class="profile-identity__meta">
+                <span class="profile-identity__name">Kyaw Kyaw Htun</span>
+                <span class="profile-identity__role">Data Analyst · NYC</span>
+              </div>
+            </div>
+          )
+        }
+        {
+          headingLevel === 'h1' ? (
+            <h2 class="aside-card__heading" id="about-facts">At a glance</h2>
+          ) : (
+            <h3 class="aside-card__heading" id="about-facts">At a glance</h3>
+          )
+        }
+        <dl>
+          <dt>Location</dt>
+          <dd>Staten Island, NY</dd>
+          <dt>Work authorization</dt>
+          <dd>Authorized to work in the US</dd>
+          <dt>Education</dt>
+          <dd>MBA, International Business School of Scandinavia, Denmark</dd>
+          <dt>Certificates</dt>
+          <dd>
+            Google Data Analytics Certificate (Coursera)<br />
+            Project Management Certificate, Stony Brook University, New York, USA
+          </dd>
+          <dt>GitHub</dt>
+          <dd><a href={GITHUB_URL}>{GITHUB_LABEL}</a></dd>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</section>

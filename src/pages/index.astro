@@ -4,6 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import AboutSection from '../components/AboutSection.astro';
 import ContactSection from '../components/ContactSection.astro';
 import ProjectCard from '../components/ProjectCard.astro';
+import TaxiMonthlyChart from '../components/charts/TaxiMonthlyChart.astro';
 import { siteHref } from '../lib/site';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
@@ -74,9 +75,9 @@ const skillGroups = [
   <section class="hero" aria-labelledby="hero-title">
     <div class="container">
       <div class="hero__grid">
-        <div>
+        <div class="hero__intro">
           <p class="eyebrow">Data Analyst · Staten Island, NY</p>
-          <h1 id="hero-title" class="hero__title">I turn messy operational data into decisions.</h1>
+          <h1 id="hero-title" class="hero__title">I turn messy operational data <span>into decisions.</span></h1>
           <p class="hero__lede">
             Entry-level data analyst roles, remote or NYC hybrid. A decade of retail channel reporting at Thai Samsung Electronics, plus large-dataset SQL work in BigQuery and Looker Studio — cleaning, validating, and explaining findings for non-technical stakeholders.
           </p>
@@ -85,13 +86,19 @@ const skillGroups = [
             <a class="btn btn--secondary" href="#contact">Get in touch</a>
           </div>
         </div>
-        <aside class="finding-card" aria-label="Featured project finding">
-          <p class="finding-card__label">Finding · NYC Yellow Taxi</p>
-          <blockquote>
-            December 2022 was missing from a 36.3-million-row source table — only 57 raw rows. The analysis was scoped to January–November, and cash tips were treated as unrecorded, not zero.
-          </blockquote>
-          <a class="finding-card__link" href={siteHref('projects/nyc-taxi/')}>Read the case study →</a>
-        </aside>
+        <div class="hero-showcase">
+          <div class="hero-showcase__toolbar" aria-hidden="true"><span class="hero-showcase__lights"><i></i><i></i><i></i></span><span>NYC Yellow Taxi · Data quality, made visible.</span></div>
+          <div class="hero-showcase__body">
+            <div class="hero-showcase__chart"><TaxiMonthlyChart idPrefix="hero-taxi-monthly" /></div>
+            <aside class="finding-card" aria-label="Featured project finding">
+              <p class="finding-card__label">Finding · NYC Yellow Taxi</p>
+              <blockquote>
+                December 2022 was missing from a 36.3-million-row source table — only 57 raw rows. The analysis was scoped to January–November, and cash tips were treated as unrecorded, not zero.
+              </blockquote>
+              <a class="finding-card__link" href={siteHref('projects/nyc-taxi/')}>Read the case study →</a>
+            </aside>
+          </div>
+        </div>
       </div>
 
       <div class="proof-bar" role="list">

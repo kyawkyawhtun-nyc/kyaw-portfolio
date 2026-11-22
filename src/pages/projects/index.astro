@@ -20,7 +20,7 @@ const projects = (await getCollection('projects')).sort((a, b) => a.data.order -
         </p>
       </header>
       <div class="project-grid">
-        {projects.map((project) => <ProjectCard project={project} />)}
+        {projects.map((project) => <ProjectCard project={project} headingLevel="h2" />)}
       </div>
     </div>
   </section>

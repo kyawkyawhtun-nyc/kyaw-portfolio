@@ -4,9 +4,11 @@ import { siteHref } from '../lib/site';
 
 interface Props {
   project: CollectionEntry<'projects'>;
+  headingLevel?: 'h2' | 'h3';
 }
 
-const { project } = Astro.props;
+const { project, headingLevel = 'h3' } = Astro.props;
+const HeadingTag = headingLevel;
 ---
 
 <a class="project-card" href={siteHref(`projects/${project.id}/`)}>
@@ -14,7 +16,7 @@ const { project } = Astro.props;
     {project.data.badge ? <span class="badge">{project.data.badge}</span> : null}
     <span class="tool-list">{project.data.meta}</span>
   </div>
-  <h3>{project.data.title}</h3>
+  <HeadingTag class="project-card__title">{project.data.title}</HeadingTag>
   <p class="project-card__summary">{project.data.summary}</p>
   <div class="project-card__metrics">
     {

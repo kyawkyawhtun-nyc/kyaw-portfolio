@@ -46,18 +46,27 @@ const pageTitle = title === 'Home' ? 'Kyaw Kyaw Htun — Data Analyst' : `${titl
       const nav = document.getElementById('site-nav');
       const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
       if (toggle && nav) {
+        const setOpen = (open: boolean) => {
+          toggle.setAttribute('aria-expanded', String(open));
+          toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          nav.classList.toggle('is-open', open);
+        };
+
         toggle.addEventListener('click', () => {
-          const open = toggle.getAttribute('aria-expanded') === 'true';
-          toggle.setAttribute('aria-expanded', String(!open));
-          toggle.setAttribute('aria-label', open ? 'Open menu' : 'Close menu');
-          nav.classList.toggle('is-open', !open);
+          setOpen(toggle.getAttribute('aria-expanded') !== 'true');
         });
+
         nav.querySelectorAll('a').forEach((link) => {
           link.addEventListener('click', () => {
-            toggle.setAttribute('aria-expanded', 'false');
-            toggle.setAttribute('aria-label', 'Open menu');
-            nav.classList.remove('is-open');
+            setOpen(false);
           });
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && nav.classList.contains('is-open')) {
+            setOpen(false);
+            toggle.focus();
+          }
         });
       }
 

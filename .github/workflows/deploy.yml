@@ -1,0 +1,80 @@
+name: Deploy to GitHub Pages
+
+# Publish the built Astro site after an approved merge to main, or manually.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ASTRO_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: astro check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Check built HTML
+        run: npm run check:dist
+
+      - name: Install ExifTool
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends libimage-exiftool-perl
+
+      - name: Check image metadata
+        run: npm run check:images
+
+      # configure-pages is omitted. It calls the Pages API, which needs pages: read,
+      # and this job deliberately keeps contents: read only. The action also runs
+      # after the Astro build and its outputs are unused. site and base are set in
+      # astro.config.mjs; upload-pages-artifact does not need configure-pages.
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

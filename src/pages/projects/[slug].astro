@@ -1,0 +1,120 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Nyc311BoroughChart from '../../components/charts/Nyc311BoroughChart.astro';
+import Nyc311ResponseChart from '../../components/charts/Nyc311ResponseChart.astro';
+import TaxiHourlyChart from '../../components/charts/TaxiHourlyChart.astro';
+import TaxiMonthlyChart from '../../components/charts/TaxiMonthlyChart.astro';
+import { sectionHref, siteHref } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const index = projects.findIndex((item) => item.id === project.id);
+const prev = index > 0 ? projects[index - 1] : undefined;
+const next = index >= 0 && index < projects.length - 1 ? projects[index + 1] : undefined;
+const metaParts = project.data.meta.split('·').map((part) => part.trim()).filter(Boolean);
+const hasCharts = project.id === 'nyc-taxi' || project.id === 'nyc-311';
+---
+
+<BaseLayout title={project.data.title} description={project.data.description} current="projects">
+  <article>
+    <header class="case-hero">
+      <div class="container">
+        <p class="eyebrow">
+          <a href={sectionHref(Astro.url.pathname, 'projects')}>Projects</a> / {project.data.year}
+        </p>
+        <h1>{project.data.title}</h1>
+        <p class="case-hero__lede">{project.data.lede}</p>
+        <p class="case-hero__meta">
+          {metaParts.map((part) => <span>{part}</span>)}
+        </p>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="metric-strip" role="list" aria-label="Project metrics">
+        {
+          project.data.metrics.map((metric) => (
+            <div class="metric-strip__item" role="listitem">
+              <span class="metric__value">{metric.value}</span>
+              <span class="metric__label">{metric.label}</span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="prose">
+        <Content />
+        {
+          project.data.image ? (
+            <img src={siteHref(project.data.image)} alt={project.data.imageAlt ?? project.data.title} />
+          ) : null
+        }
+      </div>
+
+      {
+        hasCharts ? (
+          <section class="case-study__charts" aria-label="Data visualizations">
+            <h2>Key visuals from the SQL extracts</h2>
+            {
+              project.id === 'nyc-taxi' ? (
+                <>
+                  <TaxiMonthlyChart />
+                  <TaxiHourlyChart />
+                </>
+              ) : null
+            }
+            {
+              project.id === 'nyc-311' ? (
+                <>
+                  <Nyc311BoroughChart />
+                  <Nyc311ResponseChart />
+                </>
+              ) : null
+            }
+          </section>
+        ) : null
+      }
+
+      <div class="case-links">
+        {
+          project.data.links.map((link) => {
+            const variant = link.variant === 'secondary' ? 'btn--secondary' : 'btn--primary';
+            if (link.placeholder || !link.href) {
+              return <span class:list={['btn', variant, 'is-placeholder']}>{link.label}</span>;
+            }
+            const external = /^https:\/\//i.test(link.href);
+            return (
+              <a class:list={['btn', variant]} href={external ? link.href : siteHref(link.href)}>
+                {link.label}
+              </a>
+            );
+          })
+        }
+      </div>
+
+      <nav class="case-nav" aria-label="More projects">
+        <a href={sectionHref(Astro.url.pathname, 'projects')}>← All projects</a>
+        {
+          prev || next ? (
+            <div class="case-nav__links">
+              {prev ? <a href={siteHref(`projects/${prev.id}/`)}>← Previous: {prev.data.title}</a> : null}
+              {next ? <a href={siteHref(`projects/${next.id}/`)}>Next: {next.data.title} →</a> : null}
+            </div>
+          ) : null
+        }
+      </nav>
+    </div>
+  </article>
+</BaseLayout>

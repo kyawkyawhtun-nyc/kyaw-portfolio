@@ -3,7 +3,12 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isAllowedProjectHref, projectHrefSchema } from '../src/lib/project-href.mjs';
+import {
+  isAllowedProjectHref,
+  isAllowedProjectImage,
+  projectHrefSchema,
+  projectImageSchema,
+} from '../src/lib/project-href.mjs';
 import { CSP } from './check-dist.mjs';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
@@ -169,6 +174,96 @@ withDist(
   (result) => assert(result.code === 0, `clean XML should pass\n${result.stderr}`),
 );
 
+const htmlCases = [
+  [
+    'missing-referrer-meta',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"></head><body><p>ok</p></body></html>`,
+    /referrer meta/i,
+  ],
+  [
+    'misplaced-referrer-meta',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta charset="utf-8"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><p>ok</p></body></html>`,
+    /referrer meta/i,
+  ],
+  [
+    'wrong-referrer-meta',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="unsafe-url"></head><body><p>ok</p></body></html>`,
+    /referrer meta/i,
+  ],
+  [
+    'inline-svg-foreignObject',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><svg viewBox="0 0 10 10"><foreignObject width="10" height="10"><div>x</div></foreignObject></svg></body></html>`,
+    /foreignObject/i,
+  ],
+  [
+    'inline-svg-namespaced-foreignObject',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><svg viewBox="0 0 10 10"><svg:foreignObject width="10" height="10"></svg:foreignObject></svg></body></html>`,
+    /foreignObject/i,
+  ],
+  [
+    'inline-onclick',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><button onclick="alert(1)">x</button></body></html>`,
+    /event-handler/i,
+  ],
+  [
+    'inline-svg-onload',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><svg onload = "alert(1)"></svg></body></html>`,
+    /event-handler/i,
+  ],
+  [
+    'html-javascript-uri',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><a href="javascript:alert(1)">x</a></body></html>`,
+    /script URI/i,
+  ],
+  [
+    'html-encoded-javascript-uri',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><a href="&#106;avascript:alert(1)">x</a></body></html>`,
+    /script URI/i,
+  ],
+  [
+    'html-tab-encoded-javascript-uri',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><a href="java&#x9;script:alert(1)">x</a></body></html>`,
+    /script URI/i,
+  ],
+  [
+    'html-vbscript-uri',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><a href="vbscript:msgbox(1)">x</a></body></html>`,
+    /script URI/i,
+  ],
+  [
+    'inline-svg-external-use',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><svg><use href="https://evil.example/sprite.svg#x"></use></svg></body></html>`,
+    /external or data: reference/i,
+  ],
+  [
+    'inline-svg-protocol-relative-use',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><svg><use xlink:href="//evil.example/sprite.svg#x"></use></svg></body></html>`,
+    /external or data: reference/i,
+  ],
+  [
+    'inline-svg-external-image',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><svg><image href="http://evil.example/a.png"></image></svg></body></html>`,
+    /external or data: reference/i,
+  ],
+  [
+    'inline-svg-data-image',
+    `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><svg><image xlink:href="data:image/svg+xml,<svg/>"></image></svg></body></html>`,
+    /external or data: reference/i,
+  ],
+];
+
+for (const [name, badHtml, pattern] of htmlCases) {
+  withDist([['index.html', badHtml]], (result) => {
+    assert(result.code !== 0, `malicious HTML (${name}) should fail check-dist`);
+    assert(pattern.test(result.stderr), `malicious HTML (${name}) should match ${pattern}\n${result.stderr}`);
+  });
+}
+
+const cleanInlineSvgHtml = `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="strict-origin-when-cross-origin"></head><body><svg viewBox="0 0 100 50"><defs><rect id="bar" width="10" height="20"/></defs><use href="#bar"/><text x="5" y="10">Safe</text></svg></body></html>`;
+withDist([['index.html', cleanInlineSvgHtml]], (result) =>
+  assert(result.code === 0, `clean HTML with inline SVG should pass check-dist\n${result.stderr}`),
+);
+
 for (const href of ['https://example.com/path', '/projects/', '#notes', '#']) {
   assert(isAllowedProjectHref(href), `href should be allowed: ${href}`);
   assert(projectHrefSchema.safeParse(href).success, `schema should allow: ${href}`);
@@ -186,6 +281,28 @@ for (const href of [
 ]) {
   assert(!isAllowedProjectHref(href), `href should be rejected: ${JSON.stringify(href) || '(empty)'}`);
   assert(!projectHrefSchema.safeParse(href).success, `schema should reject: ${JSON.stringify(href) || '(empty)'}`);
+}
+
+for (const img of ['images/taxi.png', '/headshot.webp', 'charts/summary.svg', 'photo.jpg', 'hero.jpeg', 'a.avif']) {
+  assert(isAllowedProjectImage(img), `image path should be allowed: ${img}`);
+  assert(projectImageSchema.safeParse(img).success, `image schema should allow: ${img}`);
+}
+for (const img of [
+  'https://evil.example/a.png',
+  'http://evil.example/a.png',
+  '//evil.example/a.png',
+  'data:image/png;base64,abc.png',
+  '../secret.png',
+  '/images/../secret.png',
+  'images/file.html',
+  'images/file.pdf',
+  'images/my photo.png',
+  'images/a.png?x=1',
+  'images/a.png#frag',
+  '',
+]) {
+  assert(!isAllowedProjectImage(img), `image path should be rejected: ${JSON.stringify(img) || '(empty)'}`);
+  assert(!projectImageSchema.safeParse(img).success, `image schema should reject: ${JSON.stringify(img) || '(empty)'}`);
 }
 
 const pdfDir = mkdtempSync(join(tmpdir(), 'check-pdf-'));

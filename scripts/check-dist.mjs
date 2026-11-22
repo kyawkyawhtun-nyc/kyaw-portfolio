@@ -7,6 +7,8 @@ const distDir = process.argv[2] ?? 'dist';
 export const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests";
 
+export const REFERRER_POLICY = 'strict-origin-when-cross-origin';
+
 /** Extensions this static build is allowed to publish. .htm and .xhtml are scanned if present, then rejected. */
 const ALLOWED_EXT = new Set([
   '.html',
@@ -60,11 +62,11 @@ function decodeXmlEntities(value) {
   let current = value;
   for (let pass = 0; pass < 2; pass += 1) {
     current = current
-      .replace(/&#x([0-9a-f]+);/gi, (entity, hex) => {
+      .replace(/&#x([0-9a-f]+);?/gi, (entity, hex) => {
         const code = Number.parseInt(hex, 16);
         return code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
       })
-      .replace(/&#(\d+);/g, (entity, num) => {
+      .replace(/&#(\d+);?/g, (entity, num) => {
         const code = Number.parseInt(num, 10);
         return code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
       })
@@ -77,6 +79,10 @@ function decodeXmlEntities(value) {
   return current;
 }
 
+function normalizeUriValue(value) {
+  return decodeXmlEntities(value).replace(/[\u0000-\u0020]/g, '');
+}
+
 function getAttr(tag, name) {
   const match = new RegExp(
     `(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>]+))`,
@@ -86,8 +92,22 @@ function getAttr(tag, name) {
   return decodeEntities((match[1] ?? match[2] ?? match[3] ?? '').trim());
 }
 
-function firstHeadElement(headInner) {
-  let index = 0;
+function parseAttributes(tag) {
+  const body = tag.replace(/^<[a-zA-Z][\w:.-]*\s*/, '').replace(/\/?>$/, '');
+  const attrs = [];
+  const attrRe = /([^\s"'=<>\/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+  for (const match of body.matchAll(attrRe)) {
+    attrs.push({
+      name: match[1],
+      value: match[2] ?? match[3] ?? match[4] ?? '',
+      hasValue: match[2] !== undefined || match[3] !== undefined || match[4] !== undefined,
+    });
+  }
+  return attrs;
+}
+
+function nextHeadElement(headInner, startIndex = 0) {
+  let index = startIndex;
   while (index < headInner.length) {
     const char = headInner[index];
     if (char === ' ' || char === '\n' || char === '\r' || char === '\t') {
@@ -100,12 +120,26 @@ function firstHeadElement(headInner) {
       index = end + 3;
       continue;
     }
-    if (char !== '<') return { error: `unexpected text before the first <head> element: ${headInner.slice(index, index + 40)}` };
-    const end = headInner.indexOf('>', index);
+    if (char !== '<') {
+      return { error: `unexpected text in <head>: ${headInner.slice(index, index + 40)}` };
+    }
+    let quote = null;
+    let end = -1;
+    for (let cursor = index + 1; cursor < headInner.length; cursor += 1) {
+      const ch = headInner[cursor];
+      if (quote) {
+        if (ch === quote) quote = null;
+      } else if (ch === '"' || ch === "'") {
+        quote = ch;
+      } else if (ch === '>') {
+        end = cursor;
+        break;
+      }
+    }
     if (end === -1) return { error: 'unclosed tag in <head>' };
-    return { tag: headInner.slice(index, end + 1) };
+    return { tag: headInner.slice(index, end + 1), nextIndex: end + 1 };
   }
-  return { error: '<head> has no elements' };
+  return { done: true };
 }
 
 function inlineScriptErrors(text, label) {
@@ -124,27 +158,78 @@ function checkHtml(html) {
   if (!headMatch) {
     errors.push('missing <head>');
   } else {
-    const first = firstHeadElement(headMatch[1]);
+    const first = nextHeadElement(headMatch[1], 0);
     if (first.error) {
       errors.push(first.error);
+    } else if (first.done) {
+      errors.push('<head> has no elements');
     } else {
+      const isMeta = /^<meta\b/i.test(first.tag);
       const httpEquiv = getAttr(first.tag, 'http-equiv');
       const content = getAttr(first.tag, 'content');
-      if (httpEquiv?.toLowerCase() !== 'content-security-policy' || content !== CSP) {
+      if (!isMeta || httpEquiv?.toLowerCase() !== 'content-security-policy' || content !== CSP) {
         errors.push(`CSP meta is missing or not the first <head> element (found ${first.tag})`);
+      }
+
+      const second = nextHeadElement(headMatch[1], first.nextIndex);
+      if (second.error) {
+        errors.push(second.error);
+      } else if (second.done) {
+        errors.push('referrer meta is missing immediately after CSP meta in <head>');
+      } else {
+        const secondIsMeta = /^<meta\b/i.test(second.tag);
+        const name = getAttr(second.tag, 'name');
+        const referrerContent = getAttr(second.tag, 'content');
+        if (
+          !secondIsMeta ||
+          name?.toLowerCase() !== 'referrer' ||
+          referrerContent?.toLowerCase() !== REFERRER_POLICY
+        ) {
+          errors.push(
+            `referrer meta is missing or not immediately after CSP meta in <head> (found ${second.tag})`,
+          );
+        }
       }
     }
   }
 
   errors.push(...inlineScriptErrors(html, 'markup'));
 
-  const tagRe = /<([a-zA-Z][\w:.-]*)\b[^>]*>/g;
+  if (/<([\w.-]+:)?foreignObject\b/i.test(html)) {
+    errors.push('HTML contains <foreignObject');
+  }
+
+  const tagRe = /<([a-zA-Z][\w:.-]*)(?:\s+(?:"[^"]*"|'[^']*'|[^"'<>])*)?\s*\/?>/g;
   for (const match of html.matchAll(tagRe)) {
-    const target = getAttr(match[0], 'target');
-    if (!target || target.toLowerCase() !== '_blank') continue;
-    const rel = new Set((getAttr(match[0], 'rel') ?? '').toLowerCase().split(/\s+/).filter(Boolean));
-    if (!rel.has('noopener') || !rel.has('noreferrer')) {
-      errors.push(`target="_blank" is missing rel="noopener noreferrer": ${match[0]}`);
+    const tag = match[0];
+    const tagName = match[1];
+    const localName = (tagName.includes(':') ? tagName.slice(tagName.indexOf(':') + 1) : tagName).toLowerCase();
+
+    const target = getAttr(tag, 'target');
+    if (target && target.toLowerCase() === '_blank') {
+      const rel = new Set((getAttr(tag, 'rel') ?? '').toLowerCase().split(/\s+/).filter(Boolean));
+      if (!rel.has('noopener') || !rel.has('noreferrer')) {
+        errors.push(`target="_blank" is missing rel="noopener noreferrer": ${tag}`);
+      }
+    }
+
+    for (const attr of parseAttributes(tag)) {
+      const attrLower = attr.name.toLowerCase();
+      if (attr.hasValue && /^on[a-z]+$/i.test(attr.name)) {
+        errors.push(`HTML contains an inline event-handler attribute (${attr.name}): ${tag}`);
+      }
+      if (!attr.hasValue) continue;
+      const normalized = normalizeUriValue(attr.value);
+      if (/^(?:javascript|vbscript):/i.test(normalized)) {
+        errors.push(`HTML contains a disallowed script URI in ${attr.name}: ${tag}`);
+      }
+      if (
+        (localName === 'use' || localName === 'image') &&
+        (attrLower === 'href' || attrLower === 'xlink:href') &&
+        /^(?:https?:|\/\/|data:)/i.test(normalized)
+      ) {
+        errors.push(`HTML inline SVG <${tagName}> contains a disallowed external or data: reference: ${tag}`);
+      }
     }
   }
 
@@ -181,11 +266,25 @@ function checkSvg(buffer) {
     errors.push('SVG contains <foreignObject');
   }
   const collapsed = sources.map((source) => source.replace(/[\t\n\r]/g, ''));
-  if (collapsed.some((source) => /javascript\s*:/i.test(source))) {
-    errors.push('SVG contains a javascript: URL');
+  if (collapsed.some((source) => /(?:javascript|vbscript)\s*:/i.test(source))) {
+    errors.push('SVG contains a javascript: or vbscript: URL');
   }
   if (sources.some((source) => /\bon\w+\s*=/i.test(source))) {
     errors.push('SVG contains an event-handler attribute');
+  }
+  const tagRe = /<([a-zA-Z][\w:.-]*)(?:\s+(?:"[^"]*"|'[^']*'|[^"'<>])*)?\s*\/?>/g;
+  for (const match of text.matchAll(tagRe)) {
+    const tag = match[0];
+    const tagName = match[1];
+    const localName = (tagName.includes(':') ? tagName.slice(tagName.indexOf(':') + 1) : tagName).toLowerCase();
+    if (localName !== 'use' && localName !== 'image') continue;
+    for (const attr of parseAttributes(tag)) {
+      const attrLower = attr.name.toLowerCase();
+      if (attrLower !== 'href' && attrLower !== 'xlink:href') continue;
+      if (/^(?:https?:|\/\/|data:)/i.test(normalizeUriValue(attr.value))) {
+        errors.push(`SVG <${tagName}> contains a disallowed external or data: reference`);
+      }
+    }
   }
   return errors;
 }

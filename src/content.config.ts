@@ -1,7 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
-import { projectHrefSchema } from './lib/project-href.mjs';
+import { projectHrefSchema, projectImageSchema } from './lib/project-href.mjs';
 
 const metric = z.object({
   value: z.string(),
@@ -32,7 +32,7 @@ const projects = defineCollection({
         variant: z.enum(['primary', 'secondary']).default('primary'),
       }),
     ),
-    image: z.string().optional(),
+    image: projectImageSchema.optional(),
     imageAlt: z.string().optional(),
   }),
 });

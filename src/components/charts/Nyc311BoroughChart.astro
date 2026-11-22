@@ -1,0 +1,194 @@
+---
+interface Props {
+  idPrefix?: string;
+}
+
+const { idPrefix = 'nyc311-borough' } = Astro.props;
+const titleId = `${idPrefix}-title`;
+const descId = `${idPrefix}-desc`;
+
+interface BoroughHotspot {
+  borough: string;
+  zip: string;
+  count: number;
+  sticky: boolean;
+  historyNote: string;
+}
+
+const rows: BoroughHotspot[] = [
+  {
+    borough: 'Brooklyn',
+    zip: 'ZIP 11234',
+    count: 973,
+    sticky: true,
+    historyNote: 'Same #1 in 2021',
+  },
+  {
+    borough: 'Queens',
+    zip: 'ZIP 11385',
+    count: 693,
+    sticky: true,
+    historyNote: 'Same #1 in 2021',
+  },
+  {
+    borough: 'Staten Island',
+    zip: 'ZIP 10312',
+    count: 674,
+    sticky: false,
+    historyNote: 'Was 10314 in 2021',
+  },
+  {
+    borough: 'Bronx',
+    zip: 'ZIP 10469',
+    count: 336,
+    sticky: false,
+    historyNote: 'Was 10465 in 2021',
+  },
+  {
+    borough: 'Manhattan',
+    zip: 'ZIP 10031',
+    count: 112,
+    sticky: true,
+    historyNote: 'Same #1 in 2021',
+  },
+];
+
+const width = 640;
+const height = 286;
+const padLeft = 124;
+const padRight = 160;
+const padTop = 18;
+const rowStep = 44;
+const barHeight = 24;
+const plotWidth = width - padLeft - padRight; // 356
+const yAxisBottom = padTop + rows.length * rowStep; // 238
+const xMax = 1000;
+
+const ticks = [0, 250, 500, 750, 1000];
+const xFor = (val: number) => Number((padLeft + (val / xMax) * plotWidth).toFixed(1));
+const wFor = (val: number) => Number(((val / xMax) * plotWidth).toFixed(1));
+---
+
+<figure class="chart-figure">
+  <figcaption class="chart-header">
+    <span class="chart-kicker">Geographic concentration &amp; persistence</span>
+    <p class="chart-title">2024 worst “Damaged Tree” ZIP code per borough</p>
+    <p class="chart-subtitle">
+      Top-ranked ZIP code in each borough by 2024 request count, compared against 2021’s #1 hotspot.
+    </p>
+  </figcaption>
+
+  <div class="chart-legend" aria-hidden="true">
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--accent"></span>
+      Same #1 ZIP in 2021 &amp; 2024 (3 of 5 boroughs)
+    </span>
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--muted"></span>
+      Shifted #1 ZIP since 2021
+    </span>
+  </div>
+
+  <div class="chart-canvas">
+    <svg
+      class="chart-svg"
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      role="img"
+      aria-labelledby={`${titleId} ${descId}`}
+    >
+      <title id={titleId}>2024 worst Damaged Tree ZIP code per NYC borough and 2021 to 2024 persistence</title>
+      <desc id={descId}>
+        Horizontal bar chart ranking the highest-volume Damaged Tree ZIP code in each NYC borough in 2024: Brooklyn ZIP 11234 with 973 requests (same #1 in 2021), Queens ZIP 11385 with 693 requests (same #1 in 2021), Staten Island ZIP 10312 with 674 requests (was 10314 in 2021), Bronx ZIP 10469 with 336 requests (was 10465 in 2021), and Manhattan ZIP 10031 with 112 requests (same #1 in 2021). Three of five boroughs kept the same #1 hotspot over three years.
+      </desc>
+
+      {
+        ticks.map((tick) => {
+          const x = xFor(tick);
+          return (
+            <g>
+              <line
+                class={tick === 0 ? 'chart-axis-line' : 'chart-grid-line'}
+                x1={x}
+                y1={padTop - 4}
+                x2={x}
+                y2={yAxisBottom}
+              />
+              <text
+                class="chart-axis-label"
+                x={x}
+                y={yAxisBottom + 18}
+                text-anchor="middle"
+              >
+                {tick.toLocaleString('en-US')}
+              </text>
+            </g>
+          );
+        })
+      }
+
+      {
+        rows.map((row, idx) => {
+          const slotTop = padTop + idx * rowStep;
+          const barY = slotTop + (rowStep - barHeight) / 2;
+          const barW = wFor(row.count);
+          const textMidY = slotTop + rowStep / 2;
+
+          return (
+            <g>
+              <text
+                class="chart-cat-label"
+                x={padLeft - 12}
+                y={textMidY - 2}
+                text-anchor="end"
+              >
+                {row.borough}
+              </text>
+              <text
+                class="chart-cat-sub"
+                x={padLeft - 12}
+                y={textMidY + 12}
+                text-anchor="end"
+              >
+                {row.zip}
+              </text>
+              <rect
+                class={row.sticky ? 'chart-bar-accent' : 'chart-bar-muted'}
+                x={padLeft}
+                y={barY}
+                width={barW}
+                height={barHeight}
+                rx="2"
+              />
+              <text
+                x={padLeft + barW + 8}
+                y={textMidY + 4}
+                text-anchor="start"
+              >
+                <tspan class={row.sticky ? 'chart-value-accent' : 'chart-value-strong'}>
+                  {row.count}
+                </tspan>
+                <tspan class="chart-value-note" dx="8">
+                  {row.historyNote}
+                </tspan>
+              </text>
+            </g>
+          );
+        })
+      }
+
+      <text
+        class="chart-axis-unit"
+        x={padLeft + plotWidth / 2}
+        y={height - 6}
+        text-anchor="middle"
+      >
+        2024 “Damaged Tree” 311 requests
+      </text>
+    </svg>
+  </div>
+
+  <p class="chart-source">
+    Source: NYC Open Data 311 Socrata API &amp; BigQuery ROW_NUMBER() top-per-borough ranking (2021 vs. 2024).
+  </p>
+</figure>

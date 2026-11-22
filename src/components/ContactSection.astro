@@ -1,6 +1,8 @@
 ---
 import ContactEmail from './ContactEmail.astro';
-import { GITHUB_LABEL, GITHUB_URL, LINKEDIN_PLACEHOLDER_LABEL } from '../lib/contact';
+import { GITHUB_LABEL, GITHUB_URL, LINKEDIN_URL } from '../lib/contact';
+
+const linkedinLabel = LINKEDIN_URL ? LINKEDIN_URL.replace(/^https?:\/\//i, '').replace(/\/$/, '') : '';
 ---
 
 <section class="section section--alt" id="contact" aria-labelledby="contact-title">
@@ -23,10 +25,14 @@ import { GITHUB_LABEL, GITHUB_URL, LINKEDIN_PLACEHOLDER_LABEL } from '../lib/con
             <span class="label">GitHub</span>
             <a href={GITHUB_URL}>{GITHUB_LABEL}</a>
           </li>
-          <li>
-            <span class="label">LinkedIn</span>
-            <span class="placeholder-value">{LINKEDIN_PLACEHOLDER_LABEL}</span>
-          </li>
+          {
+            LINKEDIN_URL ? (
+              <li>
+                <span class="label">LinkedIn</span>
+                <a href={LINKEDIN_URL}>{linkedinLabel}</a>
+              </li>
+            ) : null
+          }
         </ul>
       </div>
     </div>

@@ -1,6 +1,6 @@
 ---
 import { GITHUB_LABEL, GITHUB_URL } from '../lib/contact';
-import { siteHref } from '../lib/site';
+import { HEADSHOT_SRC, siteHref } from '../lib/site';
 
 interface Props {
   headingLevel?: 'h1' | 'h2';
@@ -38,16 +38,37 @@ const title = 'A reporting operator who now works at dataset scale.';
         </p>
       </div>
       <aside class="aside-card" aria-labelledby="about-facts">
-        <figure class="headshot">
-          <img
-            src={siteHref('headshot-placeholder.svg')}
-            width="96"
-            height="96"
-            alt="Neutral silhouette placeholder for a professional headshot."
-          />
-          <figcaption>TODO(owner): headshot</figcaption>
-        </figure>
-        <h3 id="about-facts">At a glance</h3>
+        {
+          HEADSHOT_SRC ? (
+            <figure class="headshot">
+              <img
+                src={siteHref(HEADSHOT_SRC)}
+                width="72"
+                height="72"
+                alt="Portrait of Kyaw Kyaw Htun."
+              />
+              <figcaption class="profile-identity__meta">
+                <span class="profile-identity__name">Kyaw Kyaw Htun</span>
+                <span class="profile-identity__role">Data Analyst · NYC</span>
+              </figcaption>
+            </figure>
+          ) : (
+            <div class="profile-identity">
+              <div class="profile-monogram" aria-hidden="true">KKH</div>
+              <div class="profile-identity__meta">
+                <span class="profile-identity__name">Kyaw Kyaw Htun</span>
+                <span class="profile-identity__role">Data Analyst · NYC</span>
+              </div>
+            </div>
+          )
+        }
+        {
+          headingLevel === 'h1' ? (
+            <h2 class="aside-card__heading" id="about-facts">At a glance</h2>
+          ) : (
+            <h3 class="aside-card__heading" id="about-facts">At a glance</h3>
+          )
+        }
         <dl>
           <dt>Location</dt>
           <dd>Staten Island, NY</dd>

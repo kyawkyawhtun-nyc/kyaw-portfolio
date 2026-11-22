@@ -1,0 +1,246 @@
+---
+interface Props {
+  idPrefix?: string;
+}
+
+const { idPrefix = 'taxi-monthly' } = Astro.props;
+const titleId = `${idPrefix}-title`;
+const descId = `${idPrefix}-desc`;
+
+interface MonthPoint {
+  month: string;
+  trips: number | null;
+  label: string;
+  status: 'default' | 'peak' | 'missing';
+}
+
+const months: MonthPoint[] = [
+  { month: 'Jan', trips: 2_301_902, label: '2.30M', status: 'default' },
+  { month: 'Feb', trips: 2_771_964, label: '2.77M', status: 'default' },
+  { month: 'Mar', trips: 3_380_524, label: '3.38M', status: 'default' },
+  { month: 'Apr', trips: 3_353_918, label: '3.35M', status: 'default' },
+  { month: 'May', trips: 3_324_287, label: '3.32M', status: 'default' },
+  { month: 'Jun', trips: 3_290_250, label: '3.29M', status: 'default' },
+  { month: 'Jul', trips: 2_946_918, label: '2.95M', status: 'default' },
+  { month: 'Aug', trips: 2_937_903, label: '2.94M', status: 'default' },
+  { month: 'Sep', trips: 2_945_286, label: '2.95M', status: 'default' },
+  { month: 'Oct', trips: 3_399_181, label: '3.40M', status: 'peak' },
+  { month: 'Nov', trips: 3_019_584, label: '3.02M', status: 'default' },
+  { month: 'Dec', trips: null, label: '57 rows', status: 'missing' },
+];
+
+const width = 640;
+const height = 320;
+const padLeft = 48;
+const padRight = 16;
+const padTop = 56;
+const padBottom = 44;
+const plotWidth = width - padLeft - padRight; // 576
+const plotHeight = height - padTop - padBottom; // 220
+const yBottom = padTop + plotHeight; // 276
+const yMax = 4_000_000;
+
+const ticks = [
+  { value: 0, label: '0' },
+  { value: 1_000_000, label: '1M' },
+  { value: 2_000_000, label: '2M' },
+  { value: 3_000_000, label: '3M' },
+  { value: 4_000_000, label: '4M' },
+];
+
+const slotWidth = plotWidth / months.length; // 48
+const barWidth = 32;
+const barOffset = (slotWidth - barWidth) / 2; // 8
+
+const yFor = (val: number) => Number((yBottom - (val / yMax) * plotHeight).toFixed(1));
+const hFor = (val: number) => Number(((val / yMax) * plotHeight).toFixed(1));
+
+// Ghost placeholder box height for missing December (~2.3M reference band)
+const missingBarY = 150;
+const missingBarH = yBottom - missingBarY;
+---
+
+<figure class="chart-figure">
+  <figcaption class="chart-header">
+    <span class="chart-kicker">Seasonality &amp; completeness</span>
+    <p class="chart-title">NYC Yellow Taxi trips by month (2022)</p>
+    <p class="chart-subtitle">
+      33.67 million valid trips across Jan–Nov; December (57 raw rows) is excluded from trend totals.
+    </p>
+  </figcaption>
+
+  <div class="chart-legend" aria-hidden="true">
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--accent"></span>
+      Peak month (Oct · 3.40M)
+    </span>
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--default"></span>
+      Monthly clean trips
+    </span>
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--missing"></span>
+      Excluded incomplete month (57 raw rows)
+    </span>
+  </div>
+
+  <div class="chart-canvas">
+    <svg
+      class="chart-svg"
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      role="img"
+      aria-labelledby={`${titleId} ${descId}`}
+    >
+      <title id={titleId}>NYC Yellow Taxi trips by month, January to November 2022, with December excluded</title>
+      <desc id={descId}>
+        Vertical bar chart of 33,671,717 valid NYC yellow taxi trips in 2022: January 2.30M, February 2.77M, March 3.38M, April 3.35M, May 3.32M, June 3.29M, July 2.95M, August 2.94M, September 2.95M, October peak 3.40M (3,399,181 trips), November 3.02M. December is shown as a dashed hollow marker labeled Excluded, 57 raw rows.
+      </desc>
+
+      {
+        ticks.map((tick) => {
+          const y = yFor(tick.value);
+          return (
+            <g>
+              <line
+                class={tick.value === 0 ? 'chart-axis-line' : 'chart-grid-line'}
+                x1={padLeft}
+                y1={y}
+                x2={width - padRight}
+                y2={y}
+              />
+              <text
+                class="chart-axis-label-end"
+                x={padLeft - 8}
+                y={y + 4}
+                text-anchor="end"
+              >
+                {tick.label}
+              </text>
+            </g>
+          );
+        })
+      }
+
+      {
+        months.map((item, i) => {
+          const x = padLeft + i * slotWidth + barOffset;
+          const cx = padLeft + i * slotWidth + slotWidth / 2;
+
+          if (item.status === 'missing' || item.trips === null) {
+            return (
+              <g>
+                <rect
+                  class="chart-bar-missing"
+                  x={x}
+                  y={missingBarY}
+                  width={barWidth}
+                  height={missingBarH}
+                  rx="2"
+                />
+                <line
+                  class="chart-leader-warm"
+                  x1={cx}
+                  y1={missingBarY - 2}
+                  x2={cx}
+                  y2={missingBarY - 12}
+                />
+                <text
+                  class="chart-callout-warm"
+                  x={width - padRight}
+                  y={missingBarY - 28}
+                  text-anchor="end"
+                >
+                  Excluded
+                </text>
+                <text
+                  class="chart-callout-sub"
+                  x={width - padRight}
+                  y={missingBarY - 15}
+                  text-anchor="end"
+                >
+                  57 rows
+                </text>
+                <text
+                  class="chart-axis-label chart-axis-label-warm"
+                  x={cx}
+                  y={yBottom + 18}
+                  text-anchor="middle"
+                >
+                  {item.month}
+                </text>
+              </g>
+            );
+          }
+
+          const barY = yFor(item.trips);
+          const barH = hFor(item.trips);
+          const isPeak = item.status === 'peak';
+
+          return (
+            <g>
+              <rect
+                class={isPeak ? 'chart-bar-accent' : 'chart-bar-default'}
+                x={x}
+                y={barY}
+                width={barWidth}
+                height={barH}
+                rx="2"
+              />
+              {isPeak ? (
+                <>
+                  <text
+                    class="chart-callout-accent"
+                    x={cx}
+                    y={barY - 22}
+                    text-anchor="middle"
+                  >
+                    PEAK
+                  </text>
+                  <text
+                    class="chart-value-accent"
+                    x={cx}
+                    y={barY - 8}
+                    text-anchor="middle"
+                  >
+                    {item.label}
+                  </text>
+                </>
+              ) : (
+                <text
+                  class="chart-value-label"
+                  x={cx}
+                  y={barY - 7}
+                  text-anchor="middle"
+                >
+                  {item.label}
+                </text>
+              )}
+              <text
+                class={isPeak ? 'chart-axis-label chart-axis-label-accent' : 'chart-axis-label'}
+                x={cx}
+                y={yBottom + 18}
+                text-anchor="middle"
+              >
+                {item.month}
+              </text>
+            </g>
+          );
+        })
+      }
+
+      <text
+        class="chart-axis-unit"
+        x={padLeft + plotWidth / 2}
+        y={height - 4}
+        text-anchor="middle"
+      >
+        Month (2022) · Validated BigQuery trips
+      </text>
+    </svg>
+  </div>
+
+  <p class="chart-source">
+    Source: BigQuery public NYC TLC Yellow Taxi 2022 table (36.3M raw rows cleaned to 33,671,717 valid Jan–Nov trips).
+  </p>
+</figure>

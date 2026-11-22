@@ -1,3 +1,6 @@
+// TODO(owner): set to '/headshot.webp' after stripping EXIF metadata
+export const HEADSHOT_SRC = '';
+
 /** Base path with a trailing slash, whatever Astro stored in BASE_URL. */
 export function siteBase(): string {
   const base = import.meta.env.BASE_URL || '/';

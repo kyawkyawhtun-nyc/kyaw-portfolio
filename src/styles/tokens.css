@@ -19,6 +19,14 @@
   --color-error-bg: #f8e8e6;
   --color-overlay: rgba(21, 32, 43, 0.5);
 
+  /* Data visualization — WCAG AA graphical contrast on --color-bg-elevated */
+  --color-chart-bar: #728786;
+  --color-chart-accent: #0e5c57;
+  --color-chart-muted: #7a838c;
+  --color-chart-warm: #b5471d;
+  --color-chart-warm-muted: #b8683d;
+  --color-chart-grid: #e3ded4;
+
   /* Self-hosted family names from @fontsource. Fallbacks match the spec. */
   --font-serif: "Newsreader Variable", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --font-sans: "Source Sans 3 Variable", "Source Sans Pro", "Segoe UI", system-ui, sans-serif;
@@ -115,6 +123,12 @@
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
     --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+    --color-chart-bar: #5f7b86;
+    --color-chart-accent: #4ecdc4;
+    --color-chart-muted: #687584;
+    --color-chart-warm: #e08a5c;
+    --color-chart-warm-muted: #c27852;
+    --color-chart-grid: #27323f;
   }
 }
 
@@ -140,4 +154,10 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --color-chart-bar: #5f7b86;
+  --color-chart-accent: #4ecdc4;
+  --color-chart-muted: #687584;
+  --color-chart-warm: #e08a5c;
+  --color-chart-warm-muted: #c27852;
+  --color-chart-grid: #27323f;
 }

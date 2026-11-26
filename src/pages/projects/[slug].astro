@@ -3,6 +3,8 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Nyc311BoroughChart from '../../components/charts/Nyc311BoroughChart.astro';
 import Nyc311ResponseChart from '../../components/charts/Nyc311ResponseChart.astro';
+import RetailMonthlyChart from '../../components/charts/RetailMonthlyChart.astro';
+import RetailRetentionChart from '../../components/charts/RetailRetentionChart.astro';
 import TaxiHourlyChart from '../../components/charts/TaxiHourlyChart.astro';
 import TaxiMonthlyChart from '../../components/charts/TaxiMonthlyChart.astro';
 import { sectionHref, siteHref } from '../../lib/site';
@@ -22,7 +24,7 @@ const index = projects.findIndex((item) => item.id === project.id);
 const prev = index > 0 ? projects[index - 1] : undefined;
 const next = index >= 0 && index < projects.length - 1 ? projects[index + 1] : undefined;
 const metaParts = project.data.meta.split('·').map((part) => part.trim()).filter(Boolean);
-const hasCharts = project.id === 'nyc-taxi' || project.id === 'nyc-311';
+const hasCharts = project.id === 'nyc-taxi' || project.id === 'nyc-311' || project.id === 'online-retail';
 ---
 
 <BaseLayout title={project.data.title} description={project.data.description} current="projects">
@@ -80,6 +82,14 @@ const hasCharts = project.id === 'nyc-taxi' || project.id === 'nyc-311';
                 <>
                   <Nyc311BoroughChart />
                   <Nyc311ResponseChart />
+                </>
+              ) : null
+            }
+            {
+              project.id === 'online-retail' ? (
+                <>
+                  <RetailMonthlyChart />
+                  <RetailRetentionChart />
                 </>
               ) : null
             }

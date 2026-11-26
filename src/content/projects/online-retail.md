@@ -70,7 +70,12 @@ Raw **541,909** − duplicates **5,268** = clean **536,641** = **524,878** sale 
 
 Total net revenue was **£9,748,131.07** from **19,960** orders, at an average order value of **£488.38**. Gross sales were **£10,642,110.80** and returns took back **£893,979.73**. Revenue is heavily seasonal: **November 2011** was the best month at **£1,456,145.80** (2,769 orders), and **April 2011** was the weakest full month at **£492,367.84**. The Christmas ramp starts in September (+44.6% on August), then October (+5.1%) and November (+36.2%).
 
-<div class="data-table-wrap">
+<div class="retail-table-card retail-table-card--sales">
+  <div class="retail-table-card__header">
+    <p id="table-sales-title" class="retail-table-card__title">Monthly sales performance</p>
+    <p class="retail-table-card__meta">13 reporting periods · GBP <span class="retail-table-card__scroll-hint">Scroll horizontally to see all columns →</span></p>
+  </div>
+  <div class="data-table-wrap" role="region" aria-labelledby="table-sales-title" aria-describedby="table-sales-note" tabindex="0">
 
 | Month | Net revenue | Gross revenue | Returns | Orders | Change vs last month |
 | :--- | ---: | ---: | ---: | ---: | ---: |
@@ -88,6 +93,8 @@ Total net revenue was **£9,748,131.07** from **19,960** orders, at an average o
 | Nov 2011 | £1,456,145.80 | £1,503,866.78 | £-47,720.98 | 2,769 | +36.2% |
 | Dec 2011* | £432,701.06 | £637,790.33 | £-205,089.27 | 819 | -70.3% |
 
+  </div>
+  <p id="table-sales-note" class="retail-table-card__note">Revenue, returns, and order volume. December 2011 covers nine days only.</p>
 </div>
 
 \* December 2011 covers 9 days only (data stops Dec 9) — never compare it with full months.
@@ -96,7 +103,12 @@ Total net revenue was **£9,748,131.07** from **19,960** orders, at an average o
 
 DOTCOM POSTAGE ranks first at **£206,245.48**, but it is a delivery fee, not a product. The real top product is the **Regency Cakestand 3 Tier** at **£164,459.49**, sold across 2,007 lines — a steady seller, not one big order.
 
-<div class="data-table-wrap">
+<div class="retail-table-card retail-table-card--products">
+  <div class="retail-table-card__header">
+    <p id="table-products-title" class="retail-table-card__title">Top 10 products & charges</p>
+    <p class="retail-table-card__meta">Ranked by net revenue <span class="retail-table-card__scroll-hint">Scroll horizontally to see all columns →</span></p>
+  </div>
+  <div class="data-table-wrap" role="region" aria-labelledby="table-products-title" aria-describedby="table-products-note" tabindex="0">
 
 | Rank | Stock code | Product | Net revenue | Sale lines |
 | ---: | :--- | :--- | ---: | ---: |
@@ -111,13 +123,20 @@ DOTCOM POSTAGE ranks first at **£206,245.48**, but it is a delivery fee, not a 
 | 9 | 84879 | ASSORTED COLOUR BIRD ORNAMENT | £58,792.42 | 1,476 |
 | 10 | 79321 | CHILLI LIGHTS | £53,746.66 | 667 |
 
+  </div>
+  <p id="table-products-note" class="retail-table-card__note">Includes postage charges; these are not merchandise products.</p>
 </div>
 
 ### Top 10 customers
 
 Customer **14646** is worth **£279,489.02** across 76 orders. Customer **14911** is the most frequent buyer — 248 orders, but only £132,458.73 — lots of small orders.
 
-<div class="data-table-wrap">
+<div class="retail-table-card retail-table-card--customers">
+  <div class="retail-table-card__header">
+    <p id="table-customers-title" class="retail-table-card__title">Top 10 customers</p>
+    <p class="retail-table-card__meta">Ranked by net revenue <span class="retail-table-card__scroll-hint">Scroll horizontally to see all columns →</span></p>
+  </div>
+  <div class="data-table-wrap" role="region" aria-labelledby="table-customers-title" aria-describedby="table-customers-note" tabindex="0">
 
 | Rank | Customer | Orders | Net revenue |
 | ---: | ---: | ---: | ---: |
@@ -132,6 +151,8 @@ Customer **14646** is worth **£279,489.02** across 76 orders. Customer **14911*
 | 9 | 13694 | 60 | £62,690.54 |
 | 10 | 15311 | 118 | £59,284.19 |
 
+  </div>
+  <p id="table-customers-note" class="retail-table-card__note">Customer identifiers, order counts, and net revenue.</p>
 </div>
 
 ### Average order value
@@ -142,7 +163,12 @@ AOV sits between **£395.16** (April 2011) and **£553.94** (September 2011), ri
 
 New customers were **100%** of active buyers in Dec 2010 — the first month in the data, so everyone looks new — then **56.3%** in Jan 2011 and **19.4%** by Nov 2011. **2,704** of 4,338 customers bought in two or more months; 1,634 bought in one month only. Returning customers make up most identified active buyers by November. This is a monthly customer-mix measure, not a cohort retention rate or proof that retention caused revenue growth. “New” means first observed in this dataset; purchases before December 2010 are unknown.
 
-<div class="data-table-wrap">
+<div class="retail-table-card retail-table-card--mix">
+  <div class="retail-table-card__header">
+    <p id="table-mix-title" class="retail-table-card__title">New vs returning customers</p>
+    <p class="retail-table-card__meta">Identified customers only <span class="retail-table-card__scroll-hint">Scroll horizontally to see all columns →</span></p>
+  </div>
+  <div class="data-table-wrap" role="region" aria-labelledby="table-mix-title" aria-describedby="table-mix-note" tabindex="0">
 
 | Month | New customers | Repeat customers | Total | New share |
 | :--- | ---: | ---: | ---: | ---: |
@@ -160,6 +186,8 @@ New customers were **100%** of active buyers in Dec 2010 — the first month in 
 | Nov 2011 | 323 | 1,341 | 1,664 | 19.4% |
 | Dec 2011* | 41 | 574 | 615 | 6.7% |
 
+  </div>
+  <p id="table-mix-note" class="retail-table-card__note">New means first observed in this dataset, not necessarily first-ever purchase.</p>
 </div>
 
 \* December 2011 covers 9 days only.

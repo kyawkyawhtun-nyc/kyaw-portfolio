@@ -463,21 +463,23 @@ ul, ol { margin: 0; padding: 0; }
   box-shadow: 0 24px 70px -30px var(--color-overlay);
   overflow: hidden;
 }
-.hero-showcase__toolbar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-ink-subtle);
-  font-size: var(--text-xs);
-}
-.hero-showcase__lights { display: flex; gap: 6px; position: absolute; left: 1.5rem; }
-.hero-showcase__lights i { width: 9px; height: 9px; border-radius: 50%; background: var(--color-border-strong); }
+/* Both chart sections remain readable when JavaScript is unavailable. */
+.showcase-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.25rem 2rem; border-bottom: 1px solid var(--color-border); }
+.showcase-heading__label { font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-muted); }
+.showcase-tabs { display: flex; gap: 4px; padding: 4px; border-radius: var(--radius-pill); background: var(--color-bg-muted); }
+.showcase-tabs[hidden], .showcase-panel[hidden] { display: none; }
+.showcase-tabs button { min-height: 44px; padding: .5rem 1.1rem; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--color-ink-muted); font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.showcase-tabs button:hover { color: var(--color-accent); }
+.showcase-tabs button[aria-selected="true"] { background: var(--color-bg-elevated); color: var(--color-accent); box-shadow: var(--shadow-sm); }
+.showcase-panel:focus-visible { outline-offset: -4px; }
+.showcase-panel + .showcase-panel:not([hidden]) { border-top: 1px solid var(--color-border); }
+.showcase-panel[hidden] + .showcase-panel { border-top: 0; }
+.showcase-finding-title { font-size: clamp(1.4rem, 2vw, 1.8rem); font-weight: 650; }
+.finding-card > p:not(.finding-card__label) { color: var(--color-ink-muted); font-size: var(--text-base); }
 .hero-showcase__body { display: grid; align-items: center; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--space-8); padding: var(--space-8); }
 .hero-showcase__chart { min-width: 0; }
+.hero-showcase__chart .chart-canvas { overflow-x: auto; padding-bottom: .5rem; }
+.hero-showcase__chart .chart-svg { min-width: 32rem; }
 .hero-showcase .chart-figure { border: 0; box-shadow: none; margin: 0; padding: 0; }
 .finding-card { padding: var(--space-6); border-radius: var(--radius-lg); background: var(--color-bg); }
 .finding-card__label { color: var(--color-accent); font-size: var(--text-sm); font-weight: 600; margin-bottom: var(--space-4); }
@@ -490,9 +492,9 @@ ul, ol { margin: 0; padding: 0; }
 
 @media (max-width: 767px) {
   .hero-showcase__body { grid-template-columns: 1fr; gap: var(--space-6); padding: var(--space-5); }
-  .hero-showcase__toolbar { justify-content: flex-end; font-size: 0.625rem; padding-left: 3.25rem; }
-  .hero-showcase__lights { left: 1rem; gap: 4px; }
-  .hero-showcase__lights i { width: 6px; height: 6px; }
+  .showcase-heading { padding: var(--space-5); justify-content: center; }
+  .showcase-tabs { width: 100%; }
+  .showcase-tabs button { flex: 1; }
 }
 
 .proof-bar {

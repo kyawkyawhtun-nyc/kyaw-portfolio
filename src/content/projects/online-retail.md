@@ -42,7 +42,8 @@ links:
     href: https://github.com/kyawkyawhtun-nyc/online-retail-analysis
     variant: primary
   - label: View the source dataset (UCI)
-  # TODO(owner): add GitHub repository link once the project repo is published
+    href: https://archive.ics.uci.edu/ml/datasets/Online+Retail
+    variant: secondary
 ---
 
 ## The question

@@ -1752,3 +1752,98 @@ a.project-card:focus-visible .project-card__cta {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Retail case study: readable narrative, full-width evidence cards. */
+.retail-case .case-hero { padding-top: clamp(2.5rem, 6vw, 5rem); }
+.retail-case .case-hero h1 { max-width: 22ch; }
+.retail-case .metric-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  gap: var(--space-4);
+  overflow: visible;
+  margin-bottom: var(--space-8);
+}
+.retail-case .metric-strip__item {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+.retail-case .metric-strip__item .metric__value {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  line-height: 1.3;
+}
+.case-sections { padding: var(--space-6) 0; margin-bottom: var(--space-10); border-block: 1px solid var(--color-border); }
+.case-sections > span { display: block; margin-bottom: var(--space-3); color: var(--color-ink-subtle); font-size: var(--text-sm); font-weight: 600; }
+.case-sections ul { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; list-style: none; }
+.case-sections a { font-size: var(--text-sm); text-decoration: none; }
+.case-sections a:hover { text-decoration: underline; }
+.retail-case .prose { max-width: none; }
+.retail-case .prose > :is(p, ul, ol, h2, h3, .callout) { max-width: 46rem; }
+.retail-case .prose > h2 { padding-top: var(--space-8); margin-top: var(--space-16); border-top: 1px solid var(--color-border); }
+.retail-case .prose > h2:first-child { padding-top: 0; margin-top: 0; border: 0; }
+.retail-case .prose > h3 { margin-top: var(--space-12); font-size: var(--text-xl); }
+.retail-case .callout { border-left: 0; padding: var(--space-6); }
+.retail-case .callout p { font-size: var(--text-base); line-height: var(--leading-normal); }
+.retail-table-card {
+  margin: var(--space-8) 0 var(--space-10);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.retail-table-card__header { padding: var(--space-6); border-bottom: 1px solid var(--color-border); }
+.prose .retail-table-card__title { margin: 0 0 .25rem; font-size: var(--text-lg); font-weight: 650; color: var(--color-ink); }
+.prose .retail-table-card__meta { margin: 0; font-size: var(--text-sm); color: var(--color-ink-subtle); }
+.retail-table-card .data-table-wrap { margin: 0; border: 0; border-radius: 0; box-shadow: none; overflow-x: auto; }
+.retail-table-card .data-table-wrap:focus-visible { outline-offset: -3px; }
+.retail-table-card table { min-width: 40rem; font-size: .9375rem; }
+.retail-table-card--sales table { min-width: 58rem; }
+.retail-table-card--products table { min-width: 52rem; }
+.retail-case .retail-table-card th,
+.retail-case .retail-table-card td { padding: 1rem 1.25rem; }
+.retail-case .retail-table-card th {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  letter-spacing: .01em;
+  text-transform: none;
+  background: var(--color-bg-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+.retail-case .retail-table-card td[style*="right"] { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.retail-case .retail-table-card td:first-child { white-space: nowrap; font-weight: 600; }
+.retail-case .retail-table-card tbody tr:nth-child(even) { background: color-mix(in srgb, var(--color-bg-muted) 25%, var(--color-bg-elevated)); }
+.retail-case .retail-table-card tbody tr:hover td { background: var(--color-accent-soft); }
+.prose .retail-table-card__note { margin: 0; padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); color: var(--color-ink-subtle); font-size: var(--text-xs); line-height: 1.6; }
+.retail-table-card__scroll-hint { display: block; }
+.retail-case .case-study__charts { max-width: none; margin-top: var(--space-16); }
+.retail-case .case-study__charts .chart-figure { max-width: 52rem; }
+@media (min-width: 900px) {
+  .retail-case .metric-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  .retail-table-card__scroll-hint { display: none; }
+}
+@media (max-width: 479px) {
+  .retail-case .metric-strip__item { padding: var(--space-4); }
+  .retail-table-card__header { padding: var(--space-5); }
+  .retail-table-card th, .retail-table-card td { padding: .85rem 1rem; }
+}
+
+@media (max-width: 767px) {
+  .retail-case .retail-table-card :is(th, td):first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--color-bg-elevated);
+    border-right: 1px solid var(--color-border);
+  }
+  .retail-case .retail-table-card th:first-child { background: var(--color-bg-muted); }
+}

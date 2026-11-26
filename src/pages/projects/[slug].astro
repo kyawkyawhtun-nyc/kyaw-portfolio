@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 }
 
 const { project } = Astro.props;
-const { Content } = await render(project);
+const { Content, headings } = await render(project);
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 const index = projects.findIndex((item) => item.id === project.id);
 const prev = index > 0 ? projects[index - 1] : undefined;
@@ -28,7 +28,7 @@ const hasCharts = project.id === 'nyc-taxi' || project.id === 'nyc-311' || proje
 ---
 
 <BaseLayout title={project.data.title} description={project.data.description} current="projects">
-  <article>
+  <article class:list={[{ 'retail-case': project.id === 'online-retail' }]}>
     <header class="case-hero">
       <div class="container">
         <p class="eyebrow">
@@ -56,6 +56,14 @@ const hasCharts = project.id === 'nyc-taxi' || project.id === 'nyc-311' || proje
     </div>
 
     <div class="container">
+      {project.id === 'online-retail' ? (
+        <nav class="case-sections" aria-label="On this page">
+          <span>In this case study</span>
+          <ul>{headings.filter((heading) => heading.depth === 2).map((heading) => (
+            <li><a href={`#${heading.slug}`}>{heading.text}</a></li>
+          ))}</ul>
+        </nav>
+      ) : null}
       <div class="prose">
         <Content />
         {

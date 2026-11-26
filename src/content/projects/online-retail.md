@@ -38,9 +38,10 @@ metrics:
   - value: 2,704 of 4,338
     label: Customers who bought in 2+ months
 links:
+  - label: View the GitHub repository
+    href: https://github.com/kyawkyawhtun-nyc/online-retail-analysis
+    variant: primary
   - label: View the source dataset (UCI)
-    href: https://archive.ics.uci.edu/ml/datasets/Online+Retail
-    variant: secondary
   # TODO(owner): add GitHub repository link once the project repo is published
 ---
 

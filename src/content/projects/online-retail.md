@@ -1,7 +1,7 @@
 ---
 title: Online Retail Sales KPIs
-description: "Case study: Online Retail sales KPIs by Kyaw Kyaw Htun — BigQuery SQL on 541,909 UK retail transactions, Dec 2010–Dec 2011."
-summary: "Built a repeatable sales KPI report from 541,909 UK online retail transactions — £9.75M net revenue, a Christmas ramp starting in September, and a retention story: new buyers fall from 100% to 19.4% of active customers."
+description: "Case study: Online Retail sales KPIs by Kyaw Kyaw Htun — BigQuery SQL on 541,909 transaction lines from a UK-based retailer, Dec 2010–Dec 2011."
+summary: "Built a repeatable sales KPI report from 541,909 transaction lines from a UK-based online retailer — £9.75M net revenue, a Christmas ramp starting in September, and a customer-mix finding: newly observed buyers account for 19.4% of identified active customers in November 2011."
 lede: A UK retailer's 541,909 transaction lines looked like a simple revenue table until returns, duplicates, and 1,428 orders with no customer ID showed up. The work was to clean the data with documented SQL rules, prove every number reconciles, and turn it into KPIs a retailer can act on.
 year: "2026"
 meta: 2026 · BigQuery SQL · Excel
@@ -140,7 +140,7 @@ AOV sits between **£395.16** (April 2011) and **£553.94** (September 2011), ri
 
 ## Customers: new vs repeat
 
-New customers were **100%** of active buyers in Dec 2010 — the first month in the data, so everyone looks new — then **56.3%** in Jan 2011 and **19.4%** by Nov 2011. **2,704** of 4,338 customers bought in two or more months; 1,634 bought in one month only. The shop stops growing mainly by finding new buyers and starts growing by keeping the ones it has.
+New customers were **100%** of active buyers in Dec 2010 — the first month in the data, so everyone looks new — then **56.3%** in Jan 2011 and **19.4%** by Nov 2011. **2,704** of 4,338 customers bought in two or more months; 1,634 bought in one month only. Returning customers make up most identified active buyers by November. This is a monthly customer-mix measure, not a cohort retention rate or proof that retention caused revenue growth. “New” means first observed in this dataset; purchases before December 2010 are unknown.
 
 <div class="data-table-wrap">
 
@@ -169,8 +169,8 @@ One honest caveat: **1,428** sale orders (**7.2%**) have no CustomerID. They cou
 ## Recommendations
 
 1. **Stock up before September, not November.** Revenue nearly triples from April to November, and the ramp starts in September.
-2. **Retention is the growth engine.** Win back the 1,634 one-month-only customers, and protect the top accounts.
-3. **Attack the January returns spike.** January 2011 alone took back £131,363 — the worst month for returns, right after Christmas.
+2. **Investigate repeat purchasing.** Evaluate a win-back campaign for one-month-only customers and monitor top accounts. Customers first observed late in the dataset have less time to return, so measure cohort retention before claiming a retention effect.
+3. **Attack the January returns spike.** January 2011 alone took back £131,363 — the largest returns amount among full months. Partial December 2011 has a larger total (£205,089.27), but covers only nine days. Investigate return timing and reasons before attributing the pattern to Christmas.
 4. **Lift the low months with bundles.** April AOV is £395.16 against £553.94 in September.
 5. **Close the customer blind spot.** Capture a customer identifier at checkout, even for guest orders.
 

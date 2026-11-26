@@ -1,0 +1,78 @@
+---
+import RetailMonthlyChart from './charts/RetailMonthlyChart.astro';
+import TaxiMonthlyChart from './charts/TaxiMonthlyChart.astro';
+import { siteHref } from '../lib/site';
+---
+
+<div class="hero-showcase" data-project-showcase>
+  <div class="showcase-heading">
+    <span class="showcase-heading__label">Selected project insights</span>
+    <div class="showcase-tabs" aria-label="Featured project" hidden>
+      <button type="button" id="tab-retail" aria-controls="panel-retail">Online Retail</button>
+      <button type="button" id="tab-taxi" aria-controls="panel-taxi">NYC Taxi</button>
+    </div>
+  </div>
+  <section id="panel-retail" class="showcase-panel" aria-label="Online Retail Sales">
+    <div class="hero-showcase__body">
+      <div class="hero-showcase__chart"><RetailMonthlyChart idPrefix="hero-retail-monthly" /></div>
+      <aside class="finding-card" aria-label="Online Retail project finding">
+        <p class="finding-card__label">Finding · Online Retail Sales</p>
+        <h2 class="showcase-finding-title">The seasonal ramp starts in September.</h2>
+        <p>Net revenue rose 44.6% from August to September 2011 and peaked at £1.46M in November. December covers only nine days, so it is not a like-for-like monthly comparison.</p>
+        <a class="finding-card__link" href={siteHref('projects/online-retail/')}>Explore the retail case study →</a>
+      </aside>
+    </div>
+  </section>
+  <section id="panel-taxi" class="showcase-panel" aria-label="NYC Yellow Taxi Trips">
+    <div class="hero-showcase__body">
+      <div class="hero-showcase__chart"><TaxiMonthlyChart idPrefix="hero-taxi-monthly" /></div>
+      <aside class="finding-card" aria-label="NYC Taxi project finding">
+        <p class="finding-card__label">Finding · NYC Yellow Taxi</p>
+        <h2 class="showcase-finding-title">A missing month changes the analysis.</h2>
+        <p>December 2022 had only 57 raw rows in a 36.3-million-row source table. The analysis was scoped to January–November, and cash tips were treated as unrecorded, not zero.</p>
+        <a class="finding-card__link" href={siteHref('projects/nyc-taxi/')}>Explore the taxi case study →</a>
+      </aside>
+    </div>
+  </section>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-project-showcase]').forEach((showcase) => {
+    const tablist = showcase.querySelector<HTMLElement>('.showcase-tabs');
+    if (!tablist) return;
+    const tabs = Array.from(tablist.querySelectorAll<HTMLButtonElement>('button'));
+    const panels = Array.from(showcase.querySelectorAll<HTMLElement>('.showcase-panel'));
+    if (tabs.length !== panels.length) return;
+    const select = (index: number, focus = false) => {
+      tabs.forEach((tab, i) => {
+        tab.setAttribute('aria-selected', String(i === index));
+        tab.tabIndex = i === index ? 0 : -1;
+        panels[i].hidden = i !== index;
+      });
+      if (focus) tabs[index].focus();
+    };
+    tablist.setAttribute('role', 'tablist');
+    tabs.forEach((tab, index) => {
+      tab.setAttribute('role', 'tab');
+      panels[index].setAttribute('role', 'tabpanel');
+      panels[index].setAttribute('aria-labelledby', tab.id);
+      panels[index].removeAttribute('aria-label');
+      panels[index].tabIndex = 0;
+      tab.addEventListener('click', () => select(index));
+      tab.addEventListener('keydown', (event) => {
+        let next: number;
+        switch (event.key) {
+          case 'ArrowRight': next = (index + 1) % tabs.length; break;
+          case 'ArrowLeft': next = (index + tabs.length - 1) % tabs.length; break;
+          case 'Home': next = 0; break;
+          case 'End': next = tabs.length - 1; break;
+          default: return;
+        }
+        event.preventDefault();
+        select(next, true);
+      });
+    });
+    select(0);
+    tablist.hidden = false;
+  });
+</script>

@@ -81,7 +81,7 @@ const hFor = (val: number) => Number(((val / yMax) * plotHeight).toFixed(1));
     </span>
   </div>
 
-  <div class="chart-canvas">
+  <div class="chart-canvas" tabindex="0" role="region" aria-label="Monthly retail revenue chart">
     <svg
       class="chart-svg"
       viewBox={`0 0 ${width} ${height}`}

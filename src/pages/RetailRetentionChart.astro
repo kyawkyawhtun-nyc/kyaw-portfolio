@@ -1,0 +1,238 @@
+---
+interface Props {
+  idPrefix?: string;
+}
+
+const { idPrefix = 'retail-retention' } = Astro.props;
+const titleId = `${idPrefix}-title`;
+const descId = `${idPrefix}-desc`;
+
+interface MonthPoint {
+  month: string;
+  share: number | null;
+  label: string;
+  status: 'default' | 'first' | 'partial';
+}
+
+const months: MonthPoint[] = [
+  { month: "Dec '10", share: 100.0, label: '100%', status: 'first' },
+  { month: 'Jan', share: 56.3, label: '56%', status: 'default' },
+  { month: 'Feb', share: 50.1, label: '50%', status: 'default' },
+  { month: 'Mar', share: 46.4, label: '46%', status: 'default' },
+  { month: 'Apr', share: 35.0, label: '35%', status: 'default' },
+  { month: 'May', share: 26.9, label: '27%', status: 'default' },
+  { month: 'Jun', share: 24.4, label: '24%', status: 'default' },
+  { month: 'Jul', share: 19.8, label: '20%', status: 'default' },
+  { month: 'Aug', share: 18.1, label: '18%', status: 'default' },
+  { month: 'Sep', share: 23.6, label: '24%', status: 'default' },
+  { month: 'Oct', share: 26.2, label: '26%', status: 'default' },
+  { month: 'Nov', share: 19.4, label: '19%', status: 'default' },
+  { month: "Dec '11", share: 6.7, label: '7%', status: 'partial' },
+];
+
+const width = 640;
+const height = 320;
+const padLeft = 52;
+const padRight = 16;
+const padTop = 56;
+const padBottom = 44;
+const plotWidth = width - padLeft - padRight; // 572
+const plotHeight = height - padTop - padBottom; // 220
+const yBottom = padTop + plotHeight; // 276
+const yMax = 100;
+
+const ticks = [
+  { value: 0, label: '0%' },
+  { value: 25, label: '25%' },
+  { value: 50, label: '50%' },
+  { value: 75, label: '75%' },
+  { value: 100, label: '100%' },
+];
+
+const slotWidth = plotWidth / months.length; // 44
+const barWidth = 30;
+const barOffset = (slotWidth - barWidth) / 2; // 7
+
+const yFor = (val: number) => Number((yBottom - (val / yMax) * plotHeight).toFixed(1));
+const hFor = (val: number) => Number(((val / yMax) * plotHeight).toFixed(1));
+---
+
+<figure class="chart-figure">
+  <figcaption class="chart-header">
+    <span class="chart-kicker">Retention</span>
+    <p class="chart-title">New customers as a share of active buyers</p>
+    <p class="chart-subtitle">
+      2,704 of 4,338 customers bought in two or more months. Growth shifts from finding new buyers to keeping the ones it has.
+    </p>
+  </figcaption>
+
+  <div class="chart-legend" aria-hidden="true">
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--accent"></span>
+      First month in the data (Dec 2010 · 100%)
+    </span>
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--default"></span>
+      New-customer share
+    </span>
+    <span class="chart-legend__item">
+      <span class="chart-legend__swatch chart-legend__swatch--missing"></span>
+      Partial month (Dec 2011 · 9 days)
+    </span>
+  </div>
+
+  <div class="chart-canvas">
+    <svg
+      class="chart-svg"
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      role="img"
+      aria-labelledby={`${titleId} ${descId}`}
+    >
+      <title id={titleId}>New customers as a share of active buyers by month, December 2010 to December 2011</title>
+      <desc id={descId}>
+        Vertical bar chart of the new-customer share of active buyers: December 2010 100 percent (first month in the data), January 2011 56.3 percent, February 50.1, March 46.4, April 35.0, May 26.9, June 24.4, July 19.8, August 18.1, September 23.6, October 26.2, November 19.4, December 2011 6.7 percent covering 9 days only.
+      </desc>
+
+      {
+        ticks.map((tick) => {
+          const y = yFor(tick.value);
+          return (
+            <g>
+              <line
+                class={tick.value === 0 ? 'chart-axis-line' : 'chart-grid-line'}
+                x1={padLeft}
+                y1={y}
+                x2={width - padRight}
+                y2={y}
+              />
+              <text
+                class="chart-axis-label-end"
+                x={padLeft - 8}
+                y={y + 4}
+                text-anchor="end"
+              >
+                {tick.label}
+              </text>
+            </g>
+          );
+        })
+      }
+
+      {
+        months.map((item, i) => {
+          const x = padLeft + i * slotWidth + barOffset;
+          const cx = padLeft + i * slotWidth + slotWidth / 2;
+
+          if (item.status === 'partial' || item.share === null) {
+            const barY = yFor(item.share ?? 0);
+            const barH = hFor(item.share ?? 0);
+            return (
+              <g>
+                <rect
+                  class="chart-bar-missing"
+                  x={x}
+                  y={barY}
+                  width={barWidth}
+                  height={barH}
+                  rx="2"
+                />
+                <text
+                  class="chart-callout-warm"
+                  x={cx}
+                  y={barY - 22}
+                  text-anchor="middle"
+                >
+                  Partial
+                </text>
+                <text
+                  class="chart-callout-sub"
+                  x={cx}
+                  y={barY - 9}
+                  text-anchor="middle"
+                >
+                  9 days
+                </text>
+                <text
+                  class="chart-axis-label chart-axis-label-warm"
+                  x={cx}
+                  y={yBottom + 18}
+                  text-anchor="middle"
+                >
+                  {item.month}
+                </text>
+              </g>
+            );
+          }
+
+          const barY = yFor(item.share);
+          const barH = hFor(item.share);
+          const isFirst = item.status === 'first';
+
+          return (
+            <g>
+              <rect
+                class={isFirst ? 'chart-bar-accent' : 'chart-bar-default'}
+                x={x}
+                y={barY}
+                width={barWidth}
+                height={barH}
+                rx="2"
+              />
+              {isFirst ? (
+                <>
+                  <text
+                    class="chart-callout-accent"
+                    x={cx}
+                    y={barY - 22}
+                    text-anchor="middle"
+                  >
+                    FIRST MONTH
+                  </text>
+                  <text
+                    class="chart-value-accent"
+                    x={cx}
+                    y={barY - 8}
+                    text-anchor="middle"
+                  >
+                    {item.label}
+                  </text>
+                </>
+              ) : (
+                <text
+                  class="chart-value-label"
+                  x={cx}
+                  y={barY - 7}
+                  text-anchor="middle"
+                >
+                  {item.label}
+                </text>
+              )}
+              <text
+                class={isFirst ? 'chart-axis-label chart-axis-label-accent' : 'chart-axis-label'}
+                x={cx}
+                y={yBottom + 18}
+                text-anchor="middle"
+              >
+                {item.month}
+              </text>
+            </g>
+          );
+        })
+      }
+
+      <text
+        class="chart-axis-unit"
+        x={padLeft + plotWidth / 2}
+        y={height - 4}
+        text-anchor="middle"
+      >
+        Month · New share = new customers ÷ active customers that month
+      </text>
+    </svg>
+  </div>
+
+  <p class="chart-source">
+    Source: UCI Online Retail dataset (541,909 lines cleaned to 536,641 in BigQuery SQL). 1,428 orders (7.2%) have no CustomerID and are excluded from this split.
+  </p>
+</figure>
